@@ -1,18 +1,19 @@
-from yt_dlp import YoutubeDL
-from yt_dlp.utils import DownloadError
-from random import shuffle
 from typing import Union
 
+from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
+
 globopts = {
-    'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
-    'source_address': '0.0.0.0',
-    'playlistend': 4,
+    "nocheckcertificate": True,
+    "ignoreerrors": False,
+    "logtostderr": False,
+    "quiet": True,
+    "no_warnings": True,
+    "source_address": "0.0.0.0",
+    "playlistend": 4,
     # 'cookiefile': '/home/foxeiz/.config/yt-dlp/cookies-youtube-com.txt'
 }
+
 
 def create(url, process=True) -> Union[dict, None]:
     """
@@ -25,10 +26,12 @@ def create(url, process=True) -> Union[dict, None]:
     """
 
     ytdlopts = globopts.copy()
-    ytdlopts.update({
-        'format': 'bestaudio[ext=webm]/bestaudio/best',
-        'restrictfilenames': True,
-    })
+    ytdlopts.update(
+        {
+            "format": "bestaudio[ext=webm]/bestaudio/best",
+            "restrictfilenames": True,
+        }
+    )
 
     with YoutubeDL(ytdlopts) as ytdl:
         try:
@@ -39,12 +42,15 @@ def create(url, process=True) -> Union[dict, None]:
             ret = {
                 "title": data.get("title", "NA"),
                 "id": data.get("id", "NA"),
-                "webpage_url": data.get("webpage_url") or data.get("original_url") or data.get("url", "NA"),
+                "webpage_url": data.get("webpage_url")
+                or data.get("original_url")
+                or data.get("url", "NA"),
                 "duration": data.get("duration", 0.0),
                 "channel": data.get("uploader", "NA"),
-                "channel_url": data.get("uploader_url") or data.get("channel_url", "NA"),
+                "channel_url": data.get("uploader_url")
+                or data.get("channel_url", "NA"),
                 "process": False,
-                "headers": data.get("http_headers", {})
+                "headers": data.get("http_headers", {}),
             }
 
             if process:
@@ -52,8 +58,9 @@ def create(url, process=True) -> Union[dict, None]:
                 ret["process"] = True
             return ret
         except DownloadError:
-            print('403 link forbidden but i dont fucking care')
+            print("403 link forbidden but i dont fucking care")
             return
+
 
 def fetch_playlist(url_playlist) -> list:
     item: dict
@@ -65,13 +72,13 @@ def fetch_playlist(url_playlist) -> list:
         if not data:
             return playlist
 
-        for item in data.get('entries', []):
+        for item in data.get("entries", []):
             try:
                 if not item:
                     return playlist
 
                 if item.get("duration", 0.0) <= 900.0:
-                    playlist.append(item['url'])
+                    playlist.append(item["url"])
             except TypeError:
                 print(f"{item['url']} is private")
 
