@@ -51,6 +51,7 @@ def create(url, process=True) -> Union[dict, None]:
                 or data.get("channel_url", "NA"),
                 "process": False,
                 "headers": data.get("http_headers", {}),
+                "extractor": data.get("extractor", "None"),
             }
 
             if process:

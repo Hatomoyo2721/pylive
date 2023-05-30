@@ -25,15 +25,12 @@ DEALINGS IN THE SOFTWARE.
 from __future__ import annotations
 
 import struct
-import subprocess as sp
-from threading import Event, Thread, Lock
-
-from typing import TYPE_CHECKING, ClassVar, IO, Generator, Tuple, Optional
+from typing import IO, TYPE_CHECKING, ClassVar, Generator, Optional, Tuple
 
 __all__ = (
-    'OggError',
-    'OggPage',
-    'OggStream',
+    "OggError",
+    "OggPage",
+    "OggStream",
 )
 
 
@@ -48,7 +45,7 @@ class OggError(Exception):
 
 
 class OggPage:
-    _header: ClassVar[struct.Struct] = struct.Struct('<xBQIIIB')
+    _header: ClassVar[struct.Struct] = struct.Struct("<xBQIIIB")
     if TYPE_CHECKING:
         flag: int
         gran_pos: int
@@ -61,14 +58,21 @@ class OggPage:
         try:
             self.header = stream.read(struct.calcsize(self._header.format))
 
-            self.flag, self.gran_pos, self.serial, self.pagenum, self.crc, self.segnum = self._header.unpack(self.header)
+            (
+                self.flag,
+                self.gran_pos,
+                self.serial,
+                self.pagenum,
+                self.crc,
+                self.segnum,
+            ) = self._header.unpack(self.header)
 
             self.segtable: bytes = stream.read(self.segnum)
-            bodylen = sum(struct.unpack('B' * self.segnum, self.segtable))
+            bodylen = sum(struct.unpack("B" * self.segnum, self.segtable))
             self.data: bytes = stream.read(bodylen)
 
         except Exception:
-            raise OggError('bad data stream') from None
+            raise OggError("bad data stream") from None
 
     def iter_packets(self) -> Generator[Tuple[bytes, bool], None, None]:
         packetlen = offset = 0
@@ -95,13 +99,16 @@ class OggStream:
         self.stream: IO[bytes] = stream
 
     def _next_page(self) -> Optional[OggPage]:
+        if isinstance(self.stream, IO):
+            raise ValueError
+
         head = self.stream.read(4)
-        if head == b'OggS':
+        if head == b"OggS":
             return OggPage(self.stream)
         elif not head:
             return None
         else:
-            raise OggError('invalid header magic')
+            raise OggError("invalid header magic")
 
     def iter_pages(self) -> Generator[OggPage, None, None]:
         page = self._next_page()
