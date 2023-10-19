@@ -38,7 +38,7 @@ class QueueAudioHandler:
         #     "https://www.youtube.com/playlist?list=PLtXKbXocjFKmpCFHNS0SNF3GouqOuX6SF"
         # )
         # self.queue = ["https://music.youtube.com/watch?v=KBuILboH6xY"]
-        self.queue = ["https://www.youtube.com/watch?v=QkAZ58VEXzM"]
+        self.queue = ["https://music.youtube.com/watch?v=v-GxoMS1U2k"]
         self.auto_queue = []
         self._skip = False
         self.lock = Lock()
@@ -120,6 +120,7 @@ class QueueAudioHandler:
             headers={
                 "Origin": "https://www.youtube.com",
                 "Referer": "https://www.youtube.com/",
+                "Content-Type": "application/json; charset=utf-8"
             },
         )
 
@@ -147,10 +148,7 @@ class QueueAudioHandler:
 
             if not res:
                 continue
-
-            playlist.append(
-                extractor.create(f"https://www.youtube.com/watch?v={res['videoId']}")
-            )
+            playlist.append(f"https://www.youtube.com/watch?v={res['videoId']}")
         return playlist
 
     @staticmethod
@@ -171,6 +169,7 @@ class QueueAudioHandler:
 
         if not self.auto_queue:
             self.auto_queue = self.experiment_get_related_tracks()
+            print(self.auto_queue)
 
         return self.auto_queue.pop()
 
@@ -212,7 +211,6 @@ class QueueAudioHandler:
                     continue
 
                 self.buffer = data
-                print(f"in serve_audio {self.audio_position=}, {self.audio_duration=}")
                 self.audio_position += 1
                 self.event.set()
                 self.event.clear()
