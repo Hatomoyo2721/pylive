@@ -11,6 +11,22 @@ app = Flask(__name__)
 audio = QueueAudioHandler()
 
 
+def check_empty(arg) -> bool:
+    if arg is None:
+        return True
+    
+    return any(arg) and (len(arg) != 0)
+
+
+def make_response(data = None, msg: str = "success", is_error: bool = False, status_code: int = 200) -> tuple[Response, int]:
+    build_resp = {
+        "msg": msg,
+        "error": is_error,
+        "data": data if check_empty(data) else None
+    }
+    return jsonify(build_resp), status_code
+
+
 def gen(audio: QueueAudioHandler):
     yield audio.wait_for_header()
     while audio.audio_thread.is_alive():  # type: ignore
@@ -38,25 +54,25 @@ def get_queue():
     index = int(request.args.get("index") or request.args.get("page", 0)) + 1
     end_offset = max(index * 5, len(audio.queue))
     start_offset = max(end_offset - 5, 0)
-    return jsonify(audio.queue[start_offset:end_offset])
+    return make_response(data=audio.queue[start_offset:end_offset])
 
 
 @app.route("/np")
 @app.route("/nowplaying")
 def np():
-    return jsonify(audio.now_playing)
+    return make_response(data=audio.now_playing)
 
 
 @app.route("/skip")
 def skip():
-    audio.skip = True
-    return Response("done")
+    audio._skip = True
+    return make_response()
 
 
 @app.route("/stream")
 def get():
     if not audio.ffmpeg:
-        return Response("No audio.", status=404)
+        return make_response(msg="No stream avaliable.", is_error=True, status_code=404)
 
     return Response(gen(audio), content_type="audio/ogg")  # type: ignore
 

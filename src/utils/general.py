@@ -1,4 +1,5 @@
 from http.client import HTTPResponse
+import json
 from queue import Queue
 from random import randint
 from threading import Thread
@@ -18,21 +19,19 @@ class MISSING_TYPE:
         return False
 
 
-class ThreadRunner:
-    @staticmethod
-    def run_in_thread(callable: Callable, *args, **kwargs):
-        def call_func(queue: Queue):
-            ret = callable(*args, **kwargs)
-            queue.put(ret)
+def run_in_thread(callable: Callable, *args, **kwargs):
+    def call_func(queue: Queue):
+        ret = callable(*args, **kwargs)
+        queue.put(ret)
 
-        q_ = Queue()
-        thread = Thread(
-            target=call_func, args=(q_,), name=f"run-in-thread:{id(q_):#x}", daemon=True
-        )
-        thread.start()
+    q_ = Queue()
+    thread = Thread(
+        target=call_func, args=(q_,), name=f"run-in-thread:{id(q_):#x}", daemon=True
+    )
+    thread.start()
 
-        thread.join()
-        return q_.get_nowait()
+    thread.join()
+    return q_.get_nowait()
 
 
 class URLRequest:
@@ -41,11 +40,14 @@ class URLRequest:
         url,
         method="GET",
         data=None,
-        headers=dict(),
+        headers=None,
         want_compression=False,
         *args,
         **kwargs,
     ) -> HTTPResponse:
+        if not headers:
+            headers = dict()
+
         headers.update(
             {
                 "User-Agent": "Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11",  # noqa: E501
@@ -59,7 +61,10 @@ class URLRequest:
             headers["Accept-Encoding"] = "identity"
 
         request_data = urllib_request.Request(
-            url=url, data=data, headers=headers, method=method
+            url=url,
+            data=bytes(json.dumps(data), encoding="utf-8"),
+            headers=headers,
+            method=method,
         )
         try:
             return urllib_request.urlopen(request_data, *args, **kwargs)
