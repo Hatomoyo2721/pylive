@@ -19,12 +19,17 @@ def check_empty(arg) -> bool:
 
 
 def make_response(
-    data=None, msg: str = "success", is_error: bool = False, status_code: int = 200
+    data=None,
+    msg: str = "success",
+    is_error: bool = False,
+    status_code: int = 200,
+    other_data=None,
 ) -> tuple[Response, int]:
     build_resp = {
         "msg": msg,
         "error": is_error,
         "data": data if check_empty(data) else None,
+        "other_data": other_data,
     }
     return jsonify(build_resp), status_code
 
@@ -45,7 +50,7 @@ def gen(audio: QueueAudioHandler):
 def add():
     url = request.args.get("url")
     if not url:
-        return Response("url params can't be null")
+        return make_error(msg="missing `url` argument")
 
     try:
         audio.add(url)
@@ -58,15 +63,30 @@ def add():
 @app.route("/queue")
 def get_queue():
     index = int(request.args.get("index") or request.args.get("page", 0)) + 1
+    use_autoqueue = request.args.get("use_autoqueue", "0") == "1"
+
     end_offset = max(index * 5, len(audio.queue))
     start_offset = max(end_offset - 5, 0)
-    return make_response(data=audio.queue[start_offset:end_offset])
+
+    data = {
+        "queue": audio.queue[start_offset:end_offset],
+    }
+
+    if use_autoqueue and audio.auto_queue:
+        data.update({"auto_queue": audio.auto_queue})
+
+    return make_response(data=data)
 
 
 @app.route("/np")
 @app.route("/nowplaying")
-def np():
-    return make_response(data=audio.now_playing)
+def get_nowplaying():
+    data: dict = {"now_playing": audio.now_playing}
+
+    if audio.queue:
+        data.update({"next_up": audio.queue[0]})
+
+    return make_response(data=data)
 
 
 @app.route("/skip")
@@ -76,7 +96,7 @@ def skip():
 
 
 @app.route("/stream")
-def get():
+def get_stream():
     if not audio.ffmpeg:
         return make_response(msg="No stream avaliable.", is_error=True, status_code=404)
 
