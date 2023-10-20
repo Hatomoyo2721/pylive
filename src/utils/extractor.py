@@ -10,8 +10,10 @@ globopts = {
     "quiet": True,
     "no_warnings": True,
     "source_address": "0.0.0.0",
-    "playlistend": 4,
-    # 'cookiefile': '/home/foxeiz/.config/yt-dlp/cookies-youtube-com.txt'
+    "playlist_items": "1-10",
+    "extract_flat": True,
+    "compat_opts": ["no-youtube-unavailable-videos"],
+    "playlistend": 10
 }
 
 
@@ -65,6 +67,10 @@ def create(url, process=True) -> Union[dict, None]:
 
 def fetch_playlist(url_playlist) -> list:
     item: dict
+    max_entries = globopts.get("playlistend", 25)
+    count = 0
+
+    print(url_playlist)
 
     playlist = []
     with YoutubeDL(globopts) as ytdl:
@@ -75,6 +81,9 @@ def fetch_playlist(url_playlist) -> list:
 
         for item in data.get("entries", []):
             try:
+                if count >= max_entries:
+                    return playlist
+
                 if not item:
                     return playlist
 
@@ -82,5 +91,7 @@ def fetch_playlist(url_playlist) -> list:
                     playlist.append(item["url"])
             except TypeError:
                 print(f"{item['url']} is private")
+
+            count += 1
 
     return playlist

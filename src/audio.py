@@ -37,8 +37,8 @@ class QueueAudioHandler:
         # self.filler = extractor.fetch_playlist(
         #     "https://www.youtube.com/playlist?list=PLtXKbXocjFKmpCFHNS0SNF3GouqOuX6SF"
         # )
-        # self.queue = ["https://music.youtube.com/watch?v=KBuILboH6xY"]
-        self.queue = ["https://music.youtube.com/watch?v=v-GxoMS1U2k"]
+        self.queue = ["https://music.youtube.com/watch?v=cUuQ5L6Obu4"]
+        # self.queue = ["https://music.youtube.com/watch?v=v-GxoMS1U2k"]
         self.auto_queue = []
         self._skip = False
         self.lock = Lock()
@@ -151,6 +151,11 @@ class QueueAudioHandler:
             playlist.append(f"https://www.youtube.com/watch?v={res['videoId']}")
         return playlist
 
+    def populate_autoqueue(self):
+        if not self.auto_queue and not self.queue:
+            self.auto_queue = self.experiment_get_related_tracks()
+            print(self.auto_queue)
+
     @staticmethod
     def __add(queue, url):
         ret = extractor.create(url, process=False)
@@ -167,10 +172,7 @@ class QueueAudioHandler:
             self.auto_queue.clear()
             return self.queue.pop()
 
-        if not self.auto_queue:
-            self.auto_queue = self.experiment_get_related_tracks()
-            print(self.auto_queue)
-
+        self.populate_autoqueue()
         return self.auto_queue.pop()
 
     @staticmethod
@@ -302,7 +304,10 @@ class QueueAudioHandler:
                 return self.header
             sleep(0.5)
 
-    def skip(self):
-        track = run_in_thread(self.pop)
+    def __skip(self):
+        track = self.pop()
         self.queue.append(track)
         self._skip = True
+
+    def skip(self):
+        run_in_thread(self.__skip)
