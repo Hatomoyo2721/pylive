@@ -29,8 +29,11 @@ def make_response(
         "msg": msg,
         "error": is_error,
         "data": data if check_empty(data) else None,
-        "other_data": other_data,
     }
+
+    if other_data:
+        build_resp.update({"other_data": other_data})
+
     return jsonify(build_resp), status_code
 
 
