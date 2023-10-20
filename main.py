@@ -18,13 +18,19 @@ def check_empty(arg) -> bool:
     return any(arg) and (len(arg) != 0)
 
 
-def make_response(data = None, msg: str = "success", is_error: bool = False, status_code: int = 200) -> tuple[Response, int]:
+def make_response(
+    data=None, msg: str = "success", is_error: bool = False, status_code: int = 200
+) -> tuple[Response, int]:
     build_resp = {
         "msg": msg,
         "error": is_error,
-        "data": data if check_empty(data) else None
+        "data": data if check_empty(data) else None,
     }
     return jsonify(build_resp), status_code
+
+
+def make_error(*args, **kwargs):
+    return make_response(*args, is_error=True, **kwargs)
 
 
 def gen(audio: QueueAudioHandler):
@@ -44,9 +50,9 @@ def add():
     try:
         audio.add(url)
     except Exception as err:
-        return Response(f"{err.__class__.__name__}: {str(err)}")
+        return make_error(msg=f"{err.__class__.__name__}: {str(err)}")
 
-    return Response("done")
+    return make_response()
 
 
 @app.route("/queue")
@@ -88,6 +94,7 @@ def random_image():
         IOReading.iter_contents(image, 8192),
         headers=image.headers.items(),  # type: ignore
     )
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5000, threaded=True)
