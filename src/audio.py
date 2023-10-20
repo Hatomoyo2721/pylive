@@ -1,3 +1,4 @@
+import sys
 import json
 import subprocess
 from array import array
@@ -14,9 +15,19 @@ from src.utils.opusreader import OggStream
 MISSING = MISSING_TYPE()
 
 
+def get_or_set_savefile(data=None):
+    patf = sys.path[0] + "/.saveurl"
+    try:
+        with open(patf, "w" if data else "r") as f:
+            if not data:
+                return f.read()
+            f.write(data)
+    except FileNotFoundError:
+        return "https://music.youtube.com/watch?v=cUuQ5L6Obu4"
+
+
 class QueueAudioHandler:
     __slots__ = (
-        "filler",
         "queue",
         "auto_queue",
         "_skip",
@@ -34,12 +45,10 @@ class QueueAudioHandler:
     )
 
     def __init__(self):
-        # self.filler = extractor.fetch_playlist(
-        #     "https://www.youtube.com/playlist?list=PLtXKbXocjFKmpCFHNS0SNF3GouqOuX6SF"
-        # )
-        self.queue = ["https://music.youtube.com/watch?v=cUuQ5L6Obu4"]
-        # self.queue = ["https://music.youtube.com/watch?v=v-GxoMS1U2k"]
+        # self.queue = ["https://music.youtube.com/watch?v=cUuQ5L6Obu4"]
+        self.queue = [get_or_set_savefile()]
         self.auto_queue = []
+
         self._skip = False
         self.lock = Lock()
         self.event = Event()
@@ -223,6 +232,9 @@ class QueueAudioHandler:
         while True:
             audio_np = q.get()
             self.audio_position = 0
+
+            get_or_set_savefile(audio_np["webpage_url"])
+
             s = subprocess.Popen(
                 [
                     "ffmpeg",
