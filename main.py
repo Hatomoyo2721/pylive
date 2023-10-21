@@ -1,8 +1,6 @@
 from flask import Flask, Response, jsonify, request
 
 from src.audio import QueueAudioHandler
-from src.image import GelbooruRandomImage
-from src.utils.general import IOReading
 
 app = Flask(__name__)
 
@@ -104,19 +102,6 @@ def get_stream():
         return make_response(msg="No stream avaliable.", is_error=True, status_code=404)
 
     return Response(gen(audio), content_type="audio/ogg")  # type: ignore
-
-
-# image randomize
-gelbooru = GelbooruRandomImage()
-
-
-@app.route("/random")
-def random_image():
-    image = gelbooru.random_post(tags=request.args.get("tags"))
-    return Response(
-        IOReading.iter_contents(image, 8192),
-        headers=image.headers.items(),  # type: ignore
-    )
 
 
 if __name__ == "__main__":
