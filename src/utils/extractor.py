@@ -64,18 +64,22 @@ def create(url, process=True) -> Union[dict, None]:
                 or data.get("original_url")
                 or data.get("url", "NA"),
                 "duration": data.get("duration", 0.0),
-                "format_duration": data.get("duration_string", "0:00"),
                 "channel": data.get("uploader", "NA"),
                 "channel_url": data.get("uploader_url")
                 or data.get("channel_url", "NA"),
-                "process": False,
+                "process": data.get("process", False),
                 "extractor": data.get("extractor", "None"),
                 "need_reencode": need_reencode,
             }
 
-            if process:
-                ret.update({"url": data.get("url")})
-                ret["process"] = True
+            if ret["process"]:
+                ret.update(
+                    {
+                        "url": data.get("url"),
+                        "format_duration": data.get("duration_string", "0:00"),
+                    }
+                )
+
             return ret
         except DownloadError:
             print("403 link forbidden but i dont fucking care")

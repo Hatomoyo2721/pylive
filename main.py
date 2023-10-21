@@ -98,7 +98,8 @@ def skip():
 
 @app.route("/")
 def get_index():
-    def html(content):  # Also allows you to set your own <head></head> etc
+    # if request.user_agent.is_mobile:
+    def html(content):
         return "<html><head></head><body>" + content + "</body></html>"
 
     return html(
