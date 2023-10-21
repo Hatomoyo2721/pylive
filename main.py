@@ -97,12 +97,28 @@ def skip():
 
 
 @app.route("/")
+def get_index():
+    def html(content):  # Also allows you to set your own <head></head> etc
+        return "<html><head></head><body>" + content + "</body></html>"
+
+    return html(
+        """
+        <p>redirect soon...</p>
+        <script>
+            setTimeout(function(){
+                window.location.replace("/stream");
+            }, 3000)
+        </script>
+        """
+    )
+
+
 @app.route("/stream")
 def get_stream():
     if not audio.ffmpeg:
         return make_response(msg="No stream avaliable.", is_error=True, status_code=404)
 
-    return Response(gen(audio), content_type="audio/ogg")  # type: ignore
+    return Response(gen(audio), content_type="audio/ogg", status=200)  # type: ignore
 
 
 if __name__ == "__main__":
