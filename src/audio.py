@@ -129,7 +129,7 @@ class QueueAudioHandler:
             headers={
                 "Origin": "https://www.youtube.com",
                 "Referer": "https://www.youtube.com/",
-                "Content-Type": "application/json; charset=utf-8"
+                "Content-Type": "application/json; charset=utf-8",
             },
         )
 

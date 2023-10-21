@@ -13,8 +13,14 @@ globopts = {
     "playlist_items": "1-10",
     "extract_flat": True,
     "compat_opts": ["no-youtube-unavailable-videos"],
-    "playlistend": 10
+    "playlistend": 10,
+    "playlistrandom": True,
 }
+
+
+def check_length(item: dict) -> bool:
+    """Check if length > 15min"""
+    return item.get("duration", 0.0) > 900.0
 
 
 def create(url, process=True) -> Union[dict, None]:
@@ -41,6 +47,16 @@ def create(url, process=True) -> Union[dict, None]:
             if not data:
                 return
 
+            if check_length(data):
+                return
+
+            need_reencode = False
+            if data.get("asr", 0) != 48000:
+                need_reencode = True
+
+            if data.get("acodec", "none") != "opus":
+                need_reencode = True
+
             ret = {
                 "title": data.get("title", "NA"),
                 "id": data.get("id", "NA"),
@@ -48,12 +64,13 @@ def create(url, process=True) -> Union[dict, None]:
                 or data.get("original_url")
                 or data.get("url", "NA"),
                 "duration": data.get("duration", 0.0),
+                "format_duration": data.get("duration_string", "0:00"),
                 "channel": data.get("uploader", "NA"),
                 "channel_url": data.get("uploader_url")
                 or data.get("channel_url", "NA"),
                 "process": False,
-                "headers": data.get("http_headers", {}),
                 "extractor": data.get("extractor", "None"),
+                "need_reencode": need_reencode,
             }
 
             if process:
@@ -87,8 +104,10 @@ def fetch_playlist(url_playlist) -> list:
                 if not item:
                     return playlist
 
-                if item.get("duration", 0.0) <= 900.0:
-                    playlist.append(item["url"])
+                if check_length(item):
+                    continue
+
+                playlist.append(item["url"])
             except TypeError:
                 print(f"{item['url']} is private")
 
