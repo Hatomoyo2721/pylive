@@ -96,6 +96,7 @@ def skip():
     return make_response()
 
 
+@app.route("/")
 @app.route("/stream")
 def get_stream():
     if not audio.ffmpeg:
