@@ -90,9 +90,6 @@ def create(url, process=True) -> Union[dict, None]:
 def fetch_playlist(url_playlist) -> list:
     item: dict
     max_entries = globopts.get("playlistend", 25)
-    count = 0
-
-    print(url_playlist)
 
     playlist = []
     with YoutubeDL(globopts) as ytdl:
@@ -101,7 +98,7 @@ def fetch_playlist(url_playlist) -> list:
         if not data:
             return playlist
 
-        for item in data.get("entries", []):
+        for count, item in enumerate(data.get("entries", [])):
             try:
                 if count >= max_entries:
                     return playlist
@@ -115,7 +112,5 @@ def fetch_playlist(url_playlist) -> list:
                 playlist.append(item["url"])
             except TypeError:
                 print(f"{item['url']} is private")
-
-            count += 1
 
     return playlist
