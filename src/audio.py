@@ -179,10 +179,10 @@ class QueueAudioHandler:
     def pop(self):
         if self.queue:
             self.auto_queue.clear()
-            return self.queue.pop()
+            return self.queue.pop(0)
 
         self.populate_autoqueue()
-        return self.auto_queue.pop()
+        return self.auto_queue.pop(0)
 
     @staticmethod
     def _spawn_process():
