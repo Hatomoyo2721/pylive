@@ -4,8 +4,11 @@ from queue import Queue
 from random import randint
 from threading import Thread
 from typing import IO, Callable, Iterable, Union
-from urllib import error as urllib_error
 from urllib import request as urllib_request
+
+
+class NonRaisingHTTPErrorProcessor(urllib_request.HTTPErrorProcessor):
+    http_response = https_response = lambda self, request, response: response
 
 
 class MISSING_TYPE:
@@ -19,7 +22,7 @@ class MISSING_TYPE:
         return False
 
 
-def run_in_thread(callable: Callable, *args, **kwargs):
+def run_in_thread(callable: Callable, *args, wait_for_result: bool = True, **kwargs):
     def call_func(queue: Queue):
         ret = callable(*args, **kwargs)
         queue.put(ret)
@@ -29,6 +32,9 @@ def run_in_thread(callable: Callable, *args, **kwargs):
         target=call_func, args=(q_,), name=f"run-in-thread:{id(q_):#x}", daemon=True
     )
     thread.start()
+
+    if not wait_for_result:
+        return
 
     thread.join()
     return q_.get_nowait()
@@ -42,6 +48,7 @@ class URLRequest:
         data=None,
         headers=None,
         want_compression=False,
+        use_proxy=True,
         *args,
         **kwargs,
     ) -> HTTPResponse:
@@ -62,14 +69,20 @@ class URLRequest:
 
         request_data = urllib_request.Request(
             url=url,
-            data=bytes(json.dumps(data), encoding="utf-8"),
+            data=bytes(json.dumps(data), encoding="utf-8") if data else None,
             headers=headers,
             method=method,
         )
-        try:
-            return urllib_request.urlopen(request_data, *args, **kwargs)
-        except urllib_error.HTTPError:
-            return __class__.proxy_request(url, *args, **kwargs)
+        opener = urllib_request.build_opener(NonRaisingHTTPErrorProcessor())
+        # try:
+        ret: HTTPResponse = opener.open(request_data, *args, **kwargs)
+        if ret.getcode() >= 400:
+            if use_proxy:
+                return __class__.proxy_request(url, *args, **kwargs)
+        return ret
+        # except urllib_error.HTTPError:
+        #     if use_proxy:
+        #         return __class__.proxy_request(url, *args, **kwargs)
 
     @staticmethod
     def proxy_request(url, *args, **kwargs):
