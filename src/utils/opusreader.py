@@ -99,8 +99,8 @@ class OggStream:
         self.stream: IO[bytes] = stream
 
     def _next_page(self) -> Optional[OggPage]:
-        if isinstance(self.stream, IO):
-            raise ValueError
+        # if isinstance(self.stream, IO):
+        #     raise ValueError
 
         head = self.stream.read(4)
         if head == b"OggS":
