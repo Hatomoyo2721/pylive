@@ -3,7 +3,7 @@ from flask import Flask, Response, jsonify, request
 from src.audio import QueueAudioHandler
 
 app = Flask(__name__)
-
+# prev_add = None
 
 # audio streaming
 audio = QueueAudioHandler()
@@ -49,6 +49,10 @@ def gen(audio: QueueAudioHandler):
 
 @app.route("/add")
 def add():
+    # global prev_add
+    # if prev_add == request.remote_addr:
+    #     return make_error(msg="Calm down you just use this.", status_code=429)
+
     url = request.args.get("url")
     if not url:
         return make_error(msg="missing `url` argument")
@@ -58,6 +62,7 @@ def add():
     except Exception as err:
         return make_error(msg=f"{err.__class__.__name__}: {str(err)}")
 
+    # prev_add = request.remote_addr
     return make_response()
 
 

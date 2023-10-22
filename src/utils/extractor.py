@@ -67,15 +67,16 @@ def create(url, process=True) -> Union[dict, None]:
                 "channel": data.get("uploader", "NA"),
                 "channel_url": data.get("uploader_url")
                 or data.get("channel_url", "NA"),
-                "process": data.get("process", False),
+                "process": False,
                 "extractor": data.get("extractor", "None"),
                 "need_reencode": need_reencode,
             }
 
-            if ret["process"]:
+            if process:
                 ret.update(
                     {
                         "url": data.get("url"),
+                        "process": True,
                         "format_duration": data.get("duration_string", "0:00"),
                     }
                 )
