@@ -149,7 +149,8 @@ class QueueAudioHandler:
                 continue
 
             playlist = extractor.fetch_playlist(res["shareUrl"])
-            return playlist
+            # remove the first entry; it usually is the same as the now-play one.
+            return playlist[1:]
 
         playlist = []
         for item in related:
@@ -163,7 +164,6 @@ class QueueAudioHandler:
     def populate_autoqueue(self):
         if not self.auto_queue and not self.queue:
             self.auto_queue = self.experiment_get_related_tracks()
-            print(self.auto_queue)
 
     @staticmethod
     def __add(queue, url):
@@ -322,4 +322,4 @@ class QueueAudioHandler:
         self._skip = True
 
     def skip(self):
-        run_in_thread(self.__skip)
+        run_in_thread(self.__skip, wait_for_result=False)
