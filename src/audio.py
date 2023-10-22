@@ -58,15 +58,15 @@ class QueueAudioHandler:
         self.buffer = b""
 
         self.ffmpeg = MISSING
-        self.ffmpeg = self._spawn_process()
+        self.ffmpeg = self._spawn_main_process()
         self.ffmpeg_stdout = self.ffmpeg.stdout
         self.ffmpeg_stdin = self.ffmpeg.stdin
 
         self._audio_position: int = 0
         self.audio_thread = Thread(
-            target=self.serve_audio, name="audio_vroom_vroom", daemon=True
+            target=self.oggstream_reader, name="audio_vroom_vroom", daemon=True
         )
-        self.thr_queue = Thread(target=self.queue_handle, name="queue", daemon=True)
+        self.thr_queue = Thread(target=self.queue_handler, name="queue", daemon=True)
         self.thr_queue.start()
         self.audio_thread.start()
 
@@ -185,7 +185,7 @@ class QueueAudioHandler:
         return self.auto_queue.pop(0)
 
     @staticmethod
-    def _spawn_process():
+    def _spawn_main_process():
         return subprocess.Popen(
             [
                 "ffmpeg",
@@ -207,7 +207,7 @@ class QueueAudioHandler:
             stderr=None,
         )
 
-    def serve_audio(self):
+    def oggstream_reader(self):
         pages_iter = OggStream(self.ffmpeg_stdout).iter_pages()  # type: ignore
         try:
             for page in pages_iter:
@@ -228,7 +228,7 @@ class QueueAudioHandler:
         except ValueError:
             return
 
-    def stdin_writer(self, q: Queue, sig: Event):
+    def ffmpeg_stdin_writer(self, q: Queue, sig: Event):
         while True:
             audio_np = q.get()
             self.audio_position = 0
@@ -281,11 +281,11 @@ class QueueAudioHandler:
             # self.buffer = b""
             print("signal is set")
 
-    def queue_handle(self):
+    def queue_handler(self):
         queue = Queue()
         signal = Event()
         stdin_writer_thread = Thread(
-            target=self.stdin_writer,
+            target=self.ffmpeg_stdin_writer,
             args=(queue, signal),
             name="ffmpeg_stdin_writer",
             daemon=True,
