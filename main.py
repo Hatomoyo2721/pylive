@@ -1,3 +1,4 @@
+from time import sleep
 from flask import Flask, Response, jsonify, render_template, request
 
 from src.audio import QueueAudioHandler
@@ -161,8 +162,13 @@ def index():
 def get_info_event():
     def gen():
         while audio.audio_thread.is_alive():
+            while not isinstance(audio.now_playing, dict):
+                sleep(0.1)
+
             yield f"data: {json.dumps(audio.now_playing)}\n\n"
             audio.next_signal.wait()
+            sleep(1)
+
         return
 
     return Response(gen(), content_type="text/event-stream")
