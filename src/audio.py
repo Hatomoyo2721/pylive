@@ -36,6 +36,7 @@ class QueueAudioHandler:
         "now_playing",
         "header",
         "buffer",
+        "next_signal",
         "ffmpeg",
         "ffmpeg_stdout",
         "ffmpeg_stdin",
@@ -56,6 +57,8 @@ class QueueAudioHandler:
 
         self.header = b""
         self.buffer = b""
+
+        self.next_signal = Event()
 
         self.ffmpeg = MISSING
         self.ffmpeg = self._spawn_main_process()
@@ -246,6 +249,8 @@ class QueueAudioHandler:
                     "5",
                     "-i",
                     audio_np["url"],
+                    "-metadata",
+                    f"Title={audio_np['title']}",
                     "-threads",
                     "2",
                     "-b:a",
@@ -283,10 +288,9 @@ class QueueAudioHandler:
 
     def queue_handler(self):
         queue = Queue()
-        signal = Event()
         stdin_writer_thread = Thread(
             target=self.ffmpeg_stdin_writer,
-            args=(queue, signal),
+            args=(queue, self.next_signal),
             name="ffmpeg_stdin_writer",
             daemon=True,
         )
@@ -294,7 +298,7 @@ class QueueAudioHandler:
         print("start stdin writer")
 
         while True:
-            signal.clear()
+            self.next_signal.clear()
             self.now_playing = self.pop()  # type: ignore
 
             if isinstance(self.now_playing, str):
@@ -308,7 +312,7 @@ class QueueAudioHandler:
             queue.put(self.now_playing)
             print(f"Playing {self.now_playing['title']}")
             print("wait for signal")
-            signal.wait()
+            self.next_signal.wait()
 
     def wait_for_header(self):
         while True:

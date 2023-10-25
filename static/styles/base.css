@@ -1,0 +1,16 @@
+* {
+    --bg-color: #3F3F3F;
+    --div-color: #D9D9D9;
+}
+
+body {
+    min-width: 1280px;
+    padding: 52px 128px 344px 128px;
+    background: var(--bg-color);
+
+    font-family: Inter;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}

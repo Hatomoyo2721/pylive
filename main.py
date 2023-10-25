@@ -1,12 +1,51 @@
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, render_template, request
 
 from src.audio import QueueAudioHandler
+from src.utils.general import URLRequest, run_in_thread
+import json
 
-app = Flask(__name__)
+WEBHOOK_URL = None
+app = Flask(__name__, static_url_path="/static")
 # prev_add = None
 
 # audio streaming
 audio = QueueAudioHandler()
+
+
+def send_webhook(func):
+    def webhook(response: Response, webhook_url=None, func_name=""):
+        if not webhook_url:
+            return
+
+        res = URLRequest.request(
+            webhook_url,
+            method="POST",
+            data={
+                "content": f"`/{func_name}`\n```{json.dumps(response.json, indent=2)}\n```",
+                "username": "debug radio",
+            },
+            headers={
+                "Content-Type": "application/json",
+            },
+        )
+
+        if res.getcode() != 204:
+            print("Failed to send webhook")
+            print(res.read().decode("utf-8"))
+
+    def wrapper(*args, **kwargs):
+        ret = func(*args, **kwargs)
+        run_in_thread(
+            webhook,
+            wait_for_result=False,
+            response=ret[0],
+            func_name=func.__name__,
+            webhook_url=WEBHOOK_URL,
+        )
+        return ret
+
+    wrapper.__name__ = func.__name__
+    return wrapper
 
 
 def check_empty(arg) -> bool:
@@ -41,13 +80,14 @@ def make_error(*args, **kwargs):
 
 def gen(audio: QueueAudioHandler):
     yield audio.wait_for_header()
-    while audio.audio_thread.is_alive():  # type: ignore
+    while audio.audio_thread.is_alive():
         yield audio.buffer
         audio.event.wait()
     return
 
 
 @app.route("/add")
+@send_webhook
 def add():
     # global prev_add
     # if prev_add == request.remote_addr:
@@ -67,6 +107,7 @@ def add():
 
 
 @app.route("/queue")
+@send_webhook
 def get_queue():
     index = int(request.args.get("index") or request.args.get("page", 0)) + 1
     use_autoqueue = request.args.get("use_autoqueue", "0") == "1"
@@ -86,6 +127,7 @@ def get_queue():
 
 @app.route("/np")
 @app.route("/nowplaying")
+@send_webhook
 def get_nowplaying():
     data: dict = {"now_playing": audio.now_playing}
 
@@ -96,27 +138,10 @@ def get_nowplaying():
 
 
 @app.route("/skip")
+@send_webhook
 def skip():
     audio._skip = True
     return make_response()
-
-
-@app.route("/")
-def get_index():
-    # if request.user_agent.is_mobile:
-    def html(content):
-        return "<html><head></head><body>" + content + "</body></html>"
-
-    return html(
-        """
-        <p>redirect soon...</p>
-        <script>
-            setTimeout(function(){
-                window.location.replace("/stream");
-            }, 3000)
-        </script>
-        """
-    )
 
 
 @app.route("/stream")
@@ -124,7 +149,23 @@ def get_stream():
     if not audio.ffmpeg:
         return make_response(msg="No stream avaliable.", is_error=True, status_code=404)
 
-    return Response(gen(audio), content_type="audio/ogg", status=200)  # type: ignore
+    return Response(gen(audio), content_type="audio/ogg", status=200)
+
+
+@app.route("/")
+def index():
+    return render_template("stream.html")
+
+
+@app.route("/info_event")
+def get_info_event():
+    def gen():
+        while audio.audio_thread.is_alive():
+            yield f"data: {json.dumps(audio.now_playing)}\n\n"
+            audio.next_signal.wait()
+        return
+
+    return Response(gen(), content_type="text/event-stream")
 
 
 if __name__ == "__main__":

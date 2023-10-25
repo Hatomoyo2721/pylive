@@ -72,7 +72,7 @@ class OggPage:
             self.data: bytes = stream.read(bodylen)
 
         except Exception:
-            raise OggError("bad data stream") from None
+            raise OggError("bad data stream")
 
     def iter_packets(self) -> Generator[Tuple[bytes, bool], None, None]:
         packetlen = offset = 0
@@ -99,7 +99,7 @@ class OggStream:
         self.stream: IO[bytes] = stream
 
     def _next_page(self) -> Optional[OggPage]:
-        # if isinstance(self.stream, IO):
+        # if not isinstance(self.stream, IO):
         #     raise ValueError
 
         head = self.stream.read(4)
