@@ -163,11 +163,16 @@ def get_info_event():
     def gen():
         while audio.audio_thread.is_alive():
             while not isinstance(audio.now_playing, dict):
-                sleep(0.1)
+                sleep(1)
+
+            prv_np = audio.now_playing
 
             yield f"data: {json.dumps(audio.now_playing)}\n\n"
             audio.next_signal.wait()
-            sleep(1)
+
+            # wait till now_playing is changed
+            while prv_np == audio.now_playing:
+                sleep(1)
 
         return
 
