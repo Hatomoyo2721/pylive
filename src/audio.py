@@ -47,7 +47,7 @@ class QueueAudioHandler:
 
     def __init__(self):
         # self.queue = ["https://music.youtube.com/watch?v=cUuQ5L6Obu4"]
-        self.queue = [get_or_set_savefile()]
+        self.queue: list = [get_or_set_savefile()]
         self.auto_queue = []
 
         self._skip = False
@@ -91,7 +91,7 @@ class QueueAudioHandler:
 
     @staticmethod
     def get_related_tracks(data):
-        if data["extractor"] != "youtube":
+        if "youtube" not in data["extractor"]:
             data = extractor.create(f"ytsearch1:{data['title']}", process=False)
             if not data:
                 return
@@ -168,16 +168,15 @@ class QueueAudioHandler:
         if not self.auto_queue and not self.queue:
             self.auto_queue = self.experiment_get_related_tracks()
 
-    @staticmethod
-    def __add(queue, url):
+    def __add(self, url):
         ret = extractor.create(url, process=False)
         if not ret:
             return
 
-        queue.append(ret)
+        self.queue.append(ret)
 
     def add(self, url):
-        run_in_thread(self.__add, self.queue, url)
+        run_in_thread(self.__add, url)
 
     def pop(self):
         if self.queue:

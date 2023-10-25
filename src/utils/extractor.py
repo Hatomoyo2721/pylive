@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Generator, Optional
 
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
@@ -23,16 +23,17 @@ def check_length(item: dict) -> bool:
     return item.get("duration", 0.0) > 900.0
 
 
-def create(url, process=True) -> Union[dict, None]:
+def create(url, process=True) -> Optional[dict]:
     """
-    Return data as follow:
-        - duration[float]
-        - [tuple]:
-            - title[str]
-            - id[str]
-            - original_url[str]
-    """
+    Retrieves information about a video from a given URL.
 
+    Parameters:
+        url (str): The URL of the video.
+        process (bool, optional): Whether to process the video or not. Defaults to True.
+
+    Returns:
+        Union[dict, None]: A dictionary containing information about the video, or None if the video could not be retrieved.
+    """
     ytdlopts = globopts.copy()
     ytdlopts.update(
         {
@@ -46,6 +47,12 @@ def create(url, process=True) -> Union[dict, None]:
             data = ytdl.extract_info(url=url, download=False, process=process)
             if not data:
                 return
+
+            if data.get("entries", False):
+                if isinstance(data["entries"], Generator):
+                    data = next(data["entries"])
+                else:
+                    data = data["entries"][0]
 
             if check_length(data):
                 return
