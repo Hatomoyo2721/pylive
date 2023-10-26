@@ -155,7 +155,7 @@ def get_stream():
 
 @app.route("/")
 def index():
-    return render_template("stream.html")
+    return render_template("stream.html", np=audio.now_playing, queue=audio.queue)
 
 
 @app.route("/info_event")

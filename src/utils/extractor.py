@@ -9,6 +9,8 @@ globopts = {
     "logtostderr": False,
     "quiet": True,
     "no_warnings": True,
+    "format": "bestaudio[ext=webm]/bestaudio/best",
+    "restrictfilenames": True,
     "source_address": "0.0.0.0",
     "playlist_items": "1-10",
     "extract_flat": True,
@@ -34,15 +36,7 @@ def create(url, process=True) -> Optional[dict]:
     Returns:
         Union[dict, None]: A dictionary containing information about the video, or None if the video could not be retrieved.
     """
-    ytdlopts = globopts.copy()
-    ytdlopts.update(
-        {
-            "format": "bestaudio[ext=webm]/bestaudio/best",
-            "restrictfilenames": True,
-        }
-    )
-
-    with YoutubeDL(ytdlopts) as ytdl:
+    with YoutubeDL(globopts) as ytdl:
         try:
             data = ytdl.extract_info(url=url, download=False, process=process)
             if not data:

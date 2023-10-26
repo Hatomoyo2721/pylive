@@ -17,8 +17,8 @@
         </div>
         <div class="metatag">
             <div class="song-info">
-                <a href="#" class="text" id="title">Title</a>
-                <a href="#" class="text" id="artist">Artist</a>
+                <a href="{{ np['webpage_url'] }}" class="text" id="title">{{ np['title'] }}</a>
+                <a href="{{ np['channel_url'] }}" class="text" id="artist">{{ np['channel'] }}</a>
             </div>
             <div id="duration">
                 00:00
@@ -29,10 +29,16 @@
         <div class="queue-main-title">Queue</div>
         <div class="queue-content">
             <div class="queue-wrapper">
-                <div class="queue-empty">
+                <div class="queue-empty{% if queue %} hidden{% endif %}">
                     <img style="padding-bottom: 10px;" src="{{ url_for('static', filename='images/kanna.gif') }}" alt="" height="200" width="156">
                     Nothing here... yet
                 </div>
+                {% if queue %}
+                    {% for q in queue %}
+                        <a href="{{ q['webpage_url'] }}" class="text" id="title">{{ q['title'] }}</a>
+                        <a href="{{ q['channel_url'] }}" class="text" id="artist">{{ q['channel'] }}</a>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </div>
