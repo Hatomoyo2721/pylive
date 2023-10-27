@@ -1,6 +1,7 @@
 import Oscilloscope from "./dist/oscilloscope.js";
 
 var ctxAudio = new window.AudioContext();
+ctxAudio.resume();
 
 var audioElement = document.getElementById("main-player");
 var source = ctxAudio.createMediaElementSource(audioElement);
