@@ -20,15 +20,19 @@
                 <a href="{{ np['webpage_url'] }}" class="text" id="title">{{ np['title'] }}</a>
                 <a href="{{ np['channel_url'] }}" class="text" id="artist">{{ np['channel'] }}</a>
             </div>
+            <canvas width="720" height="64" id="visualizer"></canvas>
             <div id="duration">
                 00:00
             </div>
         </div>
     </div>
     <div class="queue">
-        <div style="display: flex; justify-content: space-between; padding-bottom: 12px;">
+        <div class="queue-header">
             <div class="queue-main-title">Queue</div>
-            <div style="font-size: small; padding-top: 12px;" class="queue-main-title">Vote skip</div>
+            <div style="display: flex; justify-content: space-between; flex-direction: column;">
+                <button class="toggle-visual" onclick="visualizer.toggle()">Toggle visualizer</button>
+                <button class="skip-btn">Vote skip</button>
+            </div>
         </div>
         <div class="queue-content">
             <div id="queue-list" class="queue-wrapper">
@@ -48,4 +52,5 @@
         </div>
     </div>
     <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='scripts/waveform.js') }}"></script>
 {% endblock %}
