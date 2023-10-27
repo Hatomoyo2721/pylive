@@ -102,6 +102,7 @@ play_btn.addEventListener("click", function () {
 
   audio_player.src = "/stream";
   audio_player.play();
+  window.ctxAudio.resume();
 
   stopFn = watchEvent();
 });
