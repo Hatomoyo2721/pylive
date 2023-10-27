@@ -26,17 +26,22 @@
         </div>
     </div>
     <div class="queue">
-        <div class="queue-main-title">Queue</div>
+        <div style="display: flex; justify-content: space-between; padding-bottom: 12px;">
+            <div class="queue-main-title">Queue</div>
+            <div style="font-size: small; padding-top: 12px;" class="queue-main-title">Vote skip</div>
+        </div>
         <div class="queue-content">
-            <div class="queue-wrapper">
+            <div id="queue-list" class="queue-wrapper">
                 <div class="queue-empty{% if queue %} hidden{% endif %}">
                     <img style="padding-bottom: 10px;" src="{{ url_for('static', filename='images/kanna.gif') }}" alt="" height="200" width="156">
                     Nothing here... yet
                 </div>
                 {% if queue %}
                     {% for q in queue %}
+                    <div>
                         <a href="{{ q['webpage_url'] }}" class="text" id="title">{{ q['title'] }}</a>
                         <a href="{{ q['channel_url'] }}" class="text" id="artist">{{ q['channel'] }}</a>
+                    </div>
                     {% endfor %}
                 {% endif %}
             </div>

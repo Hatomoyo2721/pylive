@@ -6,7 +6,7 @@ from queue import Queue
 from threading import Event, Lock, Thread
 from time import sleep
 from random import randint
-from typing import Union
+from typing import Any, Generator, Union
 
 from src.utils import extractor
 from src.utils.general import MISSING_TYPE, URLRequest, run_in_thread
@@ -26,6 +26,39 @@ def get_or_set_savefile(data=None):
         return "https://music.youtube.com/watch?v=cUuQ5L6Obu4"
 
 
+class SendEvent:
+    NEXT_TRACK = "next"
+    QUEUE_ADD = "queueadd"
+    NOW_PLAYING = "nowplaying"
+
+    def __init__(self) -> None:
+        self.event_queue = Queue()
+        self.event_data = ""
+        self.event_signal = Event()
+
+        self._event = Thread(
+            target=self.manage_event, name="event_manager", daemon=True
+        )
+        self._event.start()
+
+    def watch(self) -> Generator[str, None, None]:
+        # if self.event_data:
+        #     yield self.event_data
+        while True:
+            self.event_signal.wait()
+            yield self.event_data
+
+    def manage_event(self):
+        while True:
+            self.event_signal.clear()
+            data: tuple[str, dict[str, Any]] = self.event_queue.get()
+            self.event_data = f"event: {data[0]}\ndata: {json.dumps(data[1])}\n\n"
+            self.event_signal.set()
+
+    def add_event(self, event_type: str, data: dict):
+        self.event_queue.put((event_type, data))
+
+
 class QueueAudioHandler:
     __slots__ = (
         "queue",
@@ -43,6 +76,7 @@ class QueueAudioHandler:
         "_audio_position",
         "audio_thread",
         "thr_queue",
+        "event_queue",
     )
 
     def __init__(self):
@@ -59,6 +93,8 @@ class QueueAudioHandler:
         self.buffer = b""
 
         self.next_signal = Event()
+
+        self.event_queue = SendEvent()
 
         self.ffmpeg = MISSING
         self.ffmpeg = self._spawn_main_process()
@@ -174,6 +210,7 @@ class QueueAudioHandler:
             return
 
         self.queue.append(ret)
+        self.event_queue.add_event(SendEvent.QUEUE_ADD, ret)
 
     def add(self, url):
         run_in_thread(self.__add, url)
@@ -212,18 +249,20 @@ class QueueAudioHandler:
     def oggstream_reader(self):
         pages_iter = OggStream(self.ffmpeg_stdout).iter_pages()  # type: ignore
         try:
+            page = next(pages_iter)
+            if page.flag == 2:
+                self.header += b"OggS" + page.header + page.segtable + page.data
+
+            page = next(pages_iter)
+            self.header += b"OggS" + page.header + page.segtable + page.data
+
             for page in pages_iter:
                 partial = array("b")
                 partial.frombytes(b"OggS" + page.header + page.segtable)
                 for data, _ in page.iter_packets():
                     partial.frombytes(data)
 
-                data = partial.tobytes()
-                if page.flag == 2 or page.pagenum == 1:
-                    self.header += data
-                    continue
-
-                self.buffer = data
+                self.buffer = partial.tobytes()
                 self.audio_position += 1
                 self.event.set()
                 self.event.clear()
@@ -235,6 +274,7 @@ class QueueAudioHandler:
             audio_np = q.get()
             self.audio_position = 0
 
+            self.event_queue.add_event(SendEvent.NOW_PLAYING, audio_np)
             get_or_set_savefile(audio_np["webpage_url"])
 
             s = subprocess.Popen(
@@ -248,8 +288,6 @@ class QueueAudioHandler:
                     "5",
                     "-i",
                     audio_np["url"],
-                    "-metadata",
-                    f"Title={audio_np['title']}",
                     "-threads",
                     "2",
                     "-b:a",

@@ -6,6 +6,9 @@ const title_div = document.getElementById("title");
 const artist_div = document.getElementById("artist");
 const duration_div = document.getElementById("duration");
 
+const queue_list = document.getElementById("queue-list");
+const queue_empty = document.getElementsByClassName("queue-empty")[0];
+
 var duration = 0;
 var is_paused = true;
 
@@ -41,21 +44,50 @@ function increaseDuration() {
   duration_div.innerText = secondsToTime(duration);
 }
 
+function changeSong(e) {
+  if (queue_list.children.length > 1) {
+    queue_list.removeChild(queue_list.children[1]);
+    if (queue_list.children.length == 1) {
+      queue_empty.classList.remove("hidden");
+    }
+  }
+  data = JSON.parse(e.data);
+  title_div.innerText = data.title;
+  title_div.href = data.webpage_url;
+
+  artist_div.innerText = data.channel;
+  artist_div.href = data.channel_url;
+}
+
+function addQueue(e) {
+  data = JSON.parse(e.data);
+  queue_empty.classList.add("hidden");
+
+  var _d = document.createElement("div");
+  _d.innerHTML = `<a href="${data.webpage_url}" class="text" id="title">${data.title}</a>
+    <a href="${data.channel_url}" class="text" id="artist">${data.channel}</a>`;
+  queue_list.appendChild(_d);
+}
+
 function watchEvent() {
   is_paused = false;
   var counter = setInterval(() => {
     increaseDuration();
   }, 1000);
 
-  var source = new EventSource("/info_event");
-  source.onmessage = function (e) {
-    var data = JSON.parse(e.data);
-    title_div.innerText = data.title;
-    title_div.href = data.webpage_url;
+  // var _map = {
+  //   nowplaying: changeSong,
+  // };
 
-    artist_div.innerText = data.channel;
-    artist_div.href = data.channel_url;
-  };
+  var source = new EventSource("/watch_event");
+  // source.onmessage = function (e) {
+  //   var data = JSON.parse(e.data);
+  //   window.console.log(e);
+  //   window.console.log(data);
+  //   _map[e.event](data.data);
+  // };
+  source.addEventListener("nowplaying", changeSong);
+  source.addEventListener("queueadd", addQueue);
 
   return function () {
     is_paused = true;

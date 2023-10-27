@@ -1,4 +1,3 @@
-from time import sleep
 from flask import Flask, Response, jsonify, render_template, request
 
 from src.audio import QueueAudioHandler
@@ -88,7 +87,6 @@ def gen(audio: QueueAudioHandler):
 
 
 @app.route("/add")
-@send_webhook
 def add():
     # global prev_add
     # if prev_add == request.remote_addr:
@@ -108,7 +106,6 @@ def add():
 
 
 @app.route("/queue")
-@send_webhook
 def get_queue():
     index = int(request.args.get("index") or request.args.get("page", 0)) + 1
     use_autoqueue = request.args.get("use_autoqueue", "0") == "1"
@@ -128,7 +125,6 @@ def get_queue():
 
 @app.route("/np")
 @app.route("/nowplaying")
-@send_webhook
 def get_nowplaying():
     data: dict = {"now_playing": audio.now_playing}
 
@@ -139,7 +135,6 @@ def get_nowplaying():
 
 
 @app.route("/skip")
-@send_webhook
 def skip():
     audio._skip = True
     return make_response()
@@ -158,25 +153,9 @@ def index():
     return render_template("stream.html", np=audio.now_playing, queue=audio.queue)
 
 
-@app.route("/info_event")
-def get_info_event():
-    def gen():
-        while audio.audio_thread.is_alive():
-            while not isinstance(audio.now_playing, dict):
-                sleep(1)
-
-            prv_np = audio.now_playing
-
-            yield f"data: {json.dumps(audio.now_playing)}\n\n"
-            audio.next_signal.wait()
-
-            # wait till now_playing is changed
-            while prv_np == audio.now_playing:
-                sleep(1)
-
-        return
-
-    return Response(gen(), content_type="text/event-stream")
+@app.route("/watch_event")
+def watch_event():
+    return Response(audio.event_queue.watch(), content_type="text/event-stream")
 
 
 if __name__ == "__main__":
