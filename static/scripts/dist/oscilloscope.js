@@ -13,17 +13,17 @@ export default class Oscilloscope {
 
     source.connect(ctxAudio.destination);
 
-    if (options.fftSize) {
-      this.analyser.fftSize = options.fftSize;
-    }
+    this.analyser.fftSize = options.fftSize || 1024;
+    this.maxFPS = options.maxFPS || 24;
+    this.type = options.type || "bars";
+
     this.ctxCanvas = ctxCanvas;
+    this.ctxAudio = ctxAudio;
     this.timeDomain = new Uint8Array(this.analyser.fftSize);
     this.drawRequest = 0;
-    this.maxFPS = 24;
     this.isEnable = false;
   }
 
-  // begin default signal animation
   animate(x0, y0, width, height) {
     if (this.isEnable) {
       throw new Error("Oscilloscope animation is already running");
@@ -67,6 +67,53 @@ export default class Oscilloscope {
     }
   }
 
+  drawBars(
+    self,
+    ctx,
+    x0 = 0,
+    y0 = 0,
+    width = ctx.canvas.width - x0,
+    height = ctx.canvas.height - y0
+  ) {
+    var bufferLength = self.analyser.frequencyBinCount;
+    var dataArray = new Float32Array(bufferLength);
+    self.analyser.getFloatFrequencyData(dataArray);
+
+    var barWidth = (width / bufferLength) * 4;
+	var barHeight;
+	let posX = 0;
+	for (let i = 0; i < bufferLength; i++) {
+		barHeight = (dataArray[i] + ((i <= 3) ? 30 : ( (i <= 14) ? 45 : 50))) * 8;
+		ctx.fillStyle = "green";
+
+		ctx.fillRect(posX, height - barHeight/2, barWidth, barHeight/2);
+		posX += barWidth + 1;
+	}
+  }
+
+  drawOsc(
+    self,
+    ctx,
+    x0 = 0,
+    y0 = 0,
+    width = ctx.canvas.width - x0,
+    height = ctx.canvas.height - y0
+  ) {
+    self.analyser.getByteTimeDomainData(self.timeDomain);
+    const step = width / self.timeDomain.length;
+
+    ctx.beginPath();
+    // drawing loop (skipping every second record)
+    for (let i = 0; i < self.timeDomain.length; i += 8) {
+      const percent = self.timeDomain[i] / 256;
+      const x = x0 + i * step;
+      const y = y0 + height * percent;
+      ctx.lineTo(x, y);
+    }
+
+    ctx.stroke();
+  }
+
   // draw signal
   draw(
     ctx,
@@ -75,19 +122,12 @@ export default class Oscilloscope {
     width = ctx.canvas.width - x0,
     height = ctx.canvas.height - y0
   ) {
-    this.analyser.getByteTimeDomainData(this.timeDomain);
-    const step = width / this.timeDomain.length;
-
-    ctx.beginPath();
-    // drawing loop (skipping every second record)
-    for (let i = 0; i < this.timeDomain.length; i += 8) {
-      const percent = this.timeDomain[i] / 256;
-      const x = x0 + i * step;
-      const y = y0 + height * percent;
-      ctx.lineTo(x, y);
+    var _map = {
+      oscilloscope: this.drawOsc,
+      bars: this.drawBars,
     }
 
-    ctx.stroke();
+    _map[this.type](this, ctx, x0, y0, width, height)
   }
 
   changefps(fps) {
@@ -102,3 +142,4 @@ export default class Oscilloscope {
     }
   }
 }
+
