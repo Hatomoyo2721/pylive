@@ -19,9 +19,13 @@ export default class Oscilloscope {
 
     this.ctxCanvas = ctxCanvas;
     this.ctxAudio = ctxAudio;
-    this.timeDomain = new Uint8Array(this.analyser.fftSize);
-    this.drawRequest = 0;
     this.isEnable = false;
+
+    // mapping function
+    this.mapDrawfn = {
+      bars: this.drawBars,
+      oscilloscope: this.drawOsc,
+    };
   }
 
   animate(x0, y0, width, height) {
@@ -68,44 +72,50 @@ export default class Oscilloscope {
   }
 
   drawBars(
-    self,
     ctx,
     x0 = 0,
     y0 = 0,
     width = ctx.canvas.width - x0,
     height = ctx.canvas.height - y0
   ) {
-    var bufferLength = self.analyser.frequencyBinCount;
+    var bufferLength = this.analyser.frequencyBinCount;
     var dataArray = new Float32Array(bufferLength);
-    self.analyser.getFloatFrequencyData(dataArray);
+    this.analyser.getFloatFrequencyData(dataArray);
 
     var barWidth = (width / bufferLength) * 4;
-	var barHeight;
-	let posX = 0;
-	for (let i = 0; i < bufferLength; i++) {
-		barHeight = (dataArray[i] + ((i <= 3) ? 30 : ( (i <= 14) ? 45 : 50))) * 8;
-		ctx.fillStyle = "green";
+    var barHeight;
+    let posX = 0;
+    for (let i = 0; i < bufferLength; i++) {
+      barHeight = (dataArray[i] + (i <= 3 ? 30 : i <= 14 ? 45 : 50)) * 4;
+      ctx.fillStyle = "green";
 
-		ctx.fillRect(posX, height - barHeight/2, barWidth, barHeight/2);
-		posX += barWidth + 1;
-	}
+      // ctx.fillRect(posX, height - barHeight / 2, barWidth, barHeight / 2);
+      ctx.beginPath();
+      ctx.moveTo(posX, height);
+      ctx.lineTo(posX, height - barHeight);
+      ctx.lineTo(posX + barWidth, height - barHeight);
+      ctx.lineTo(posX + barWidth, height);
+      ctx.fill();
+      posX += barWidth + 1;
+    }
   }
 
   drawOsc(
-    self,
     ctx,
     x0 = 0,
     y0 = 0,
     width = ctx.canvas.width - x0,
     height = ctx.canvas.height - y0
   ) {
-    self.analyser.getByteTimeDomainData(self.timeDomain);
-    const step = width / self.timeDomain.length;
+    var bufferLength = this.analyser.frequencyBinCount;
+    var dataArray = new Uint8Array(this.analyser.fftSize);
+    this.analyser.getByteTimeDomainData(dataArray);
+    const step = width / bufferLength;
 
     ctx.beginPath();
     // drawing loop (skipping every second record)
-    for (let i = 0; i < self.timeDomain.length; i += 8) {
-      const percent = self.timeDomain[i] / 256;
+    for (let i = 0; i < bufferLength; i += 8) {
+      const percent = dataArray[i] / 256;
       const x = x0 + i * step;
       const y = y0 + height * percent;
       ctx.lineTo(x, y);
@@ -122,16 +132,29 @@ export default class Oscilloscope {
     width = ctx.canvas.width - x0,
     height = ctx.canvas.height - y0
   ) {
-    var _map = {
-      oscilloscope: this.drawOsc,
-      bars: this.drawBars,
-    }
-
-    _map[this.type](this, ctx, x0, y0, width, height)
+    this.mapDrawfn[this.type].call(this, ctx, x0, y0, width, height);
   }
 
-  changefps(fps) {
+  changeType(type) {
+    if (["bars", "oscilloscope"].indexOf(type) === -1) {
+      return;
+    }
+    this.type = type;
+  }
+
+  changeFPS(fps) {
     this.maxFPS = fps;
+  }
+
+  changeSize(width, height) {
+    this.ctxCanvas.canvas.width = width;
+    this.ctxCanvas.canvas.height = height;
+  }
+
+  changeSmoothing(v) {
+    if (v >= 0 && v <= 1) {
+      this.analyser.smoothingTimeConstant = v;
+    }
   }
 
   toggle() {
@@ -142,4 +165,3 @@ export default class Oscilloscope {
     }
   }
 }
-

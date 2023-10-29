@@ -1,11 +1,11 @@
 import Oscilloscope from "./dist/oscilloscope.js";
 
-window.ctxAudio = new window.AudioContext();
+window.ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
 var audioElement = document.getElementById("main-player");
 var source = window.ctxAudio.createMediaElementSource(audioElement);
 var options = {
   stroke: 1, // size of the wave
-  type: "oscilloscope",
+  type: "bars",
   fftSize: 2048, // size ranging from 32 to any number that that is a power of 2
 };
 var canvas = document.getElementById("visualizer");
@@ -17,3 +17,5 @@ window.visualizer = new Oscilloscope(
   window.ctxAudio,
   options
 );
+
+window.visualizer.toggle();
