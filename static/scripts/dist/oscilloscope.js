@@ -16,6 +16,7 @@ export default class Oscilloscope {
     this.analyser.fftSize = options.fftSize || 1024;
     this.maxFPS = options.maxFPS || 24;
     this.type = options.type || "bars";
+    this.thickness = options.stroke || 1;
 
     this.ctxCanvas = ctxCanvas;
     this.ctxAudio = ctxAudio;
@@ -82,7 +83,7 @@ export default class Oscilloscope {
     var dataArray = new Float32Array(bufferLength);
     this.analyser.getFloatFrequencyData(dataArray);
 
-    var barWidth = (width / bufferLength) * 4;
+    var barWidth = (width / bufferLength) * this.thickness;
     var barHeight;
     let posX = 0;
     for (let i = 0; i < bufferLength; i++) {
@@ -113,6 +114,7 @@ export default class Oscilloscope {
     const step = width / bufferLength;
 
     ctx.beginPath();
+    ctx.lineWidth = this.thickness;
     // drawing loop (skipping every second record)
     for (let i = 0; i < bufferLength; i += 8) {
       const percent = dataArray[i] / 256;
@@ -151,7 +153,11 @@ export default class Oscilloscope {
     this.ctxCanvas.canvas.height = height;
   }
 
-  changeSmoothing(v) {
+  changeThickness(v) {
+    this.thickness = v;
+  }
+
+  changeSensitivity(v) {
     if (v >= 0 && v <= 1) {
       this.analyser.smoothingTimeConstant = v;
     }
