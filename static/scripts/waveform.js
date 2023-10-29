@@ -17,5 +17,3 @@ window.visualizer = new Oscilloscope(
   window.ctxAudio,
   options
 );
-
-window.visualizer.toggle();
