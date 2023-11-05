@@ -37,13 +37,14 @@ class SendEvent:
         self.event_signal = Event()
 
         self._event = Thread(
-            target=self.manage_event, name="event_manager", daemon=True
+            target=self.manage_event, name="send_event_manager", daemon=True
         )
         self._event.start()
 
     def watch(self) -> Generator[str, None, None]:
-        # if self.event_data:
-        #     yield self.event_data
+        if "nowplaying" in self.event_data:
+            yield self.event_data
+
         while True:
             self.event_signal.wait()
             yield self.event_data

@@ -75,17 +75,9 @@ function watchEvent() {
     increaseDuration();
   }, 1000);
 
-  // var _map = {
-  //   nowplaying: changeSong,
-  // };
-
-  var source = new EventSource("/watch_event");
-  // source.onmessage = function (e) {
-  //   var data = JSON.parse(e.data);
-  //   window.console.log(e);
-  //   window.console.log(data);
-  //   _map[e.event](data.data);
-  // };
+  if (!source) {
+    var source = new EventSource("/watch_event");
+  }
   source.addEventListener("nowplaying", changeSong);
   source.addEventListener("queueadd", addQueue);
 
@@ -93,6 +85,7 @@ function watchEvent() {
     is_paused = true;
     clearInterval(counter);
     source.close();
+    source = null;
   };
 }
 
@@ -114,3 +107,7 @@ pause_btn.addEventListener("click", function () {
   audio_player.src = "";
   stopFn();
 });
+
+var source = new EventSource("/watch_event");
+source.addEventListener("nowplaying", changeSong);
+source.addEventListener("queueadd", addQueue);
