@@ -178,6 +178,7 @@ class QueueAudioHandler:
 
         data_json = json.loads(data.read())
 
+        related: list[dict] = []
         try:
             related = data_json["contents"]["twoColumnWatchNextResults"][
                 "secondaryResults"
@@ -196,12 +197,15 @@ class QueueAudioHandler:
         #     return playlist[1:]
 
         playlist = []
-        for item in related:
-            res = item.get("compactVideoRenderer", False)
+        for count, item in enumerate(related):
+            if count > 4:
+                break
 
+            res = item.get("compactVideoRenderer", False)
             if not res:
                 continue
             playlist.append(f"https://www.youtube.com/watch?v={res['videoId']}")
+
         return playlist
 
     def populate_autoqueue(self):
