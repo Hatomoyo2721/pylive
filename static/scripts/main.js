@@ -39,6 +39,18 @@ function secondsToTime(secs) {
   }
 }
 
+function voteSkip() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onload = function () {
+    data = JSON.parse(xhttp.responseText);
+    if (data.msg == "success") {
+      console.log("Vote skip success");
+    }
+  }
+  xhttp.open("GET", "/skip", true);
+  xhttp.send();
+}
+
 function increaseDuration() {
   duration += 1;
   duration_div.innerText = secondsToTime(duration);

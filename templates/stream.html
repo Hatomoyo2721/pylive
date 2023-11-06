@@ -1,56 +1,57 @@
 {% extends 'header.html' %}
 
 {% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/stream.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/stream.css') }}">
 {% endblock %}
 
 {% block content %}
-    <div class="player-control">
-        <audio id="main-player" src></audio>
-        <div class="ctrl-button">
-            <div id="play" class="click-btn">
-                <img src="{{ url_for('static', filename='images/play.svg') }}" alt="" height="48" width="48">
-            </div>
-            <div id="pause" class="click-btn hidden">
-                <img src="{{ url_for('static', filename='images/pause.svg') }}" alt="" height="48" width="48">
-            </div>
+<div class="player-control">
+    <audio id="main-player" src></audio>
+    <div class="ctrl-button">
+        <div id="play" class="click-btn">
+            <img src="{{ url_for('static', filename='images/play.svg') }}" alt="" height="48" width="48">
         </div>
-        <div class="metatag">
-            <div class="song-info">
-                <a href="{{ np['webpage_url'] }}" class="text" id="title">{{ np['title'] }}</a>
-                <a href="{{ np['channel_url'] }}" class="text" id="artist">{{ np['channel'] }}</a>
-            </div>
-            <canvas width="720" height="64" id="visualizer"></canvas>
-            <div id="duration">
-                00:00
-            </div>
+        <div id="pause" class="click-btn hidden">
+            <img src="{{ url_for('static', filename='images/pause.svg') }}" alt="" height="48" width="48">
         </div>
     </div>
-    <div class="queue">
-        <div class="queue-header">
-            <div class="queue-main-title">Queue</div>
-            <div style="display: flex; justify-content: space-between; flex-direction: column;">
-                <button class="toggle-visual" onclick="visualizer.toggle()">Toggle visualizer</button>
-                <button class="skip-btn">Vote skip</button>
-            </div>
+    <div class="metatag">
+        <div class="song-info">
+            <a href="{{ np['webpage_url'] }}" class="text" id="title">{{ np['title'] }}</a>
+            <a href="{{ np['channel_url'] }}" class="text" id="artist">{{ np['channel'] }}</a>
         </div>
-        <div class="queue-content">
-            <div id="queue-list" class="queue-wrapper">
-                <div class="queue-empty{% if queue %} hidden{% endif %}">
-                    <img style="padding-bottom: 10px;" src="{{ url_for('static', filename='images/kanna.gif') }}" alt="" height="200" width="156">
-                    Nothing here... yet
-                </div>
-                {% if queue %}
-                    {% for q in queue %}
-                    <div>
-                        <a href="{{ q['webpage_url'] }}" class="text" id="title">{{ q['title'] }}</a>
-                        <a href="{{ q['channel_url'] }}" class="text" id="artist">{{ q['channel'] }}</a>
-                    </div>
-                    {% endfor %}
-                {% endif %}
-            </div>
+        <canvas width="720" height="64" id="visualizer"></canvas>
+        <div id="duration">
+            00:00
         </div>
     </div>
-    <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
-    <script type="module" src="{{ url_for('static', filename='scripts/waveform.js') }}"></script>
+</div>
+<div class="queue">
+    <div class="queue-header">
+        <div class="queue-main-title">Queue</div>
+        <div style="display: flex; justify-content: space-between; flex-direction: column;">
+            <button class="toggle-visual" onclick="visualizer.toggle()">Toggle visualizer</button>
+            <button class="skip-btn" onclick="voteSkip()">Vote skip</button>
+        </div>
+    </div>
+    <div class="queue-content">
+        <div id="queue-list" class="queue-wrapper">
+            <div class="queue-empty{% if queue %} hidden{% endif %}">
+                <img style="padding-bottom: 10px;" src="{{ url_for('static', filename='images/kanna.gif') }}" alt=""
+                    height="200" width="156">
+                Nothing here... yet
+            </div>
+            {% if queue %}
+            {% for q in queue %}
+            <div>
+                <a href="{{ q['webpage_url'] }}" class="text" id="title">{{ q['title'] }}</a>
+                <a href="{{ q['channel_url'] }}" class="text" id="artist">{{ q['channel'] }}</a>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='scripts/waveform.js') }}"></script>
 {% endblock %}
