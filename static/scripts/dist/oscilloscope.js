@@ -193,28 +193,34 @@ export default class Oscilloscope {
   }
 
   changeThickness(v) {
+    if (v == "") v = 1;
     this.thickness = v;
   }
 
   changeColor(v) {
+    if (v == "") v = "black";
     this.color = v;
   }
 
   changeSensitivity(v) {
+    if (v == "") v = 0.6;
     if (v >= 0 && v <= 1) {
       this.analyser.smoothingTimeConstant = v;
     }
   }
 
   changeMultiply(v) {
+    if (v == "") v = 1;
     this.multiplier = v;
   }
 
   changeminDecibels(v) {
+    if (v == "") v = -100;
     this.analyser.minDecibels = v;
   }
 
   changemaxDecibels(v) {
+    if (v == "") v = -30;
     this.analyser.maxDecibels = v;
   }
 

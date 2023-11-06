@@ -29,20 +29,23 @@
 <div class="hidden" id="visualizer-setting">
     <div class="setting-box">
         <label for="visualizer-fps">FPS</label>
-        <input onchange="visualizer.changeFPS(this.value)" type="text" id="visualizer-fps" placeholder="48">
+        <input onchange="visualizer.changeFPS(this.value)" type="number" min="1" id="visualizer-fps" value="48"
+            placeholder="48">
     </div>
     <div class="setting-box">
         <label for="visualizer-thickness">Thickness</label>
-        <input onchange="visualizer.changeThickness(this.value)" type="text" id="visualizer-thickness" placeholder="2">
+        <input onchange="visualizer.changeThickness(this.value)" type="number" step="0.1" min="0.1"
+            id="visualizer-thickness" placeholder="2" value="2">
     </div>
     <div class="setting-box">
         <label for="visualizer-color">Color</label>
-        <input onchange="visualizer.changeColor(this.value)" type="text" id="visualizer-color" placeholder="black">
+        <input onchange="visualizer.changeColor(this.value)" type="text" id="visualizer-color" placeholder="black"
+            value="black">
     </div>
     <div class="setting-box">
         <label for="visualizer-sensitivity">Sensitivity</label>
-        <input onchange="visualizer.changeSensitivity(this.value)" type="text" id="visualizer-sensitivity"
-            placeholder="0.6">
+        <input onchange="visualizer.changeSensitivity(this.value)" min="0" max="1" step="0.1" type="number"
+            id="visualizer-sensitivity" placeholder="0.6" value="0.6">
     </div>
     <div class="setting-box">
         <label for="visualizer-type">Type</label>
@@ -53,17 +56,18 @@
     </div>
     <div class="setting-box">
         <label for="visualizer-multiplier">Multiplier</label>
-        <input onchange="visualizer.changeMultiply(this.value)" type="text" id="visualizer-multiplier" placeholder="1">
+        <input onchange="visualizer.changeMultiply(this.value)" type="number" min="0" step="0.1"
+            id="visualizer-multiplier" placeholder="1" value="1">
     </div>
     <div class="setting-box">
         <label for="visualizer-minDecibels">Min Decibels</label>
-        <input onchange="visualizer.changeminDecibels(this.value)" type="text" id="visualizer-minDecibels"
-            placeholder="-100">
+        <input onchange="visualizer.changeminDecibels(this.value)" min="-100" max="0" type="text"
+            id="visualizer-minDecibels" placeholder="-100" value="-100">
     </div>
     <div class="setting-box">
         <label for="visualizer-maxDecibels">Max Decibels</label>
-        <input onchange="visualizer.changemaxDecibels(this.value)" type="text" id="visualizer-maxDecibels"
-            placeholder="-30">
+        <input onchange="visualizer.changemaxDecibels(this.value)" min="-100" max="0" type="number"
+            id="visualizer-maxDecibels" placeholder="-30" value="-30">
     </div>
 
 </div>
