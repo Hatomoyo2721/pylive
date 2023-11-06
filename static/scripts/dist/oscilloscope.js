@@ -18,7 +18,7 @@ export default class Oscilloscope {
     this.maxFPS = options.maxFPS || 48;
     this.type = options.type || "bars";
     this.thickness = options.stroke || 1;
-    this.color = options.color || "green";
+    this.color = options.color || "black";
     this.multiplier = options.multiplier || 1;
 
     this.ctxCanvas = ctxCanvas;
