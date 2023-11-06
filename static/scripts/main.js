@@ -87,38 +87,11 @@ function watchEvent() {
     increaseDuration();
   }, 1000);
 
-  if (!source) {
-    var source = new EventSource("/watch_event");
-  }
-  source.addEventListener("nowplaying", changeSongEvent);
-  source.addEventListener("queueadd", addQueueEvent);
-
   return function () {
     is_paused = true;
     clearInterval(counter);
-    source.close();
-    source = null;
   };
 }
-
-play_btn.addEventListener("click", function () {
-  play_btn.classList.add("hidden");
-  pause_btn.classList.remove("hidden");
-
-  audio_player.src = "/stream";
-  audio_player.play();
-  window.ctxAudio.resume();
-
-  stopFn = watchEvent();
-});
-
-pause_btn.addEventListener("click", function () {
-  play_btn.classList.remove("hidden");
-  pause_btn.classList.add("hidden");
-
-  audio_player.src = "";
-  stopFn();
-});
 
 function addQueue(url) {
   var xhttp = new XMLHttpRequest();
@@ -157,3 +130,27 @@ document.getElementById("add-queue-box").addEventListener("keyup", ({key}) => {
     AddQueueBox();
   }
 });
+
+
+play_btn.addEventListener("click", function () {
+  play_btn.classList.add("hidden");
+  pause_btn.classList.remove("hidden");
+
+  audio_player.src = "/stream";
+  audio_player.play();
+  window.ctxAudio.resume();
+
+  stopFn = watchEvent();
+});
+
+pause_btn.addEventListener("click", function () {
+  play_btn.classList.remove("hidden");
+  pause_btn.classList.add("hidden");
+
+  audio_player.src = "";
+  stopFn();
+});
+
+var source = new EventSource("/watch_event");
+source.addEventListener("nowplaying", changeSongEvent);
+source.addEventListener("queueadd", addQueueEvent);
