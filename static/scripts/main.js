@@ -132,10 +132,11 @@ function addQueue(url) {
   xhttp.send();
 }
 
-document.getElementById("add-btn").addEventListener("click", function () {
+function watchAddQueueBox() {
+  var addBtn = document.getElementById("add-btn")
   var input = document.getElementById("add-queue-box");
-  if (this.style.transform != "") {
-    this.style.transform = "";
+  if (addBtn.style.transform != "") {
+    addBtn.style.transform = "";
     input.style.height = "";
     input.style.visibility = "";
     if (input.value != "") {
@@ -144,7 +145,14 @@ document.getElementById("add-btn").addEventListener("click", function () {
     }
     return;
   }
-  this.style.transform = "rotate(45deg)";
+  addBtn.style.transform = "rotate(45deg)";
   input.style.height = "25px";
   input.style.visibility = "visible";
+}
+
+document.getElementById("add-btn").addEventListener("click", watchAddQueueBox);
+document.getElementById("add-queue-box").addEventListener("keyup", ({key}) => {
+  if (key === "Enter") {
+    watchAddQueueBox();
+  }
 });
