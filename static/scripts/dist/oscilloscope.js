@@ -20,6 +20,8 @@ export default class Oscilloscope {
     this.thickness = options.stroke || 1;
     this.color = options.color || "black";
     this.multiplier = options.multiplier || 1;
+    this.analyser.minDecibels = options.minDecibels || -100;
+    this.analyser.maxDecibels = options.minDecibels || -30;
 
     this.ctxCanvas = ctxCanvas;
     this.ctxAudio = ctxAudio;
@@ -206,6 +208,14 @@ export default class Oscilloscope {
 
   changeMultiply(v) {
     this.multiplier = v;
+  }
+
+  changeminDecibels(v) {
+    this.analyser.minDecibels = v;
+  }
+
+  changemaxDecibels(v) {
+    this.analyser.maxDecibels = v;
   }
 
   toggle() {
