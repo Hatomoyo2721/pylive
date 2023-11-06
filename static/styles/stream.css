@@ -135,6 +135,10 @@
   justify-content: center;
 }
 
+#visualizer {
+  cursor: pointer;
+}
+
 #visualizer-setting {
   display: flex;
   flex-direction: row;
