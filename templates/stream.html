@@ -20,18 +20,49 @@
             <a href="{{ np['webpage_url'] }}" class="text" id="title">{{ np['title'] }}</a>
             <a href="{{ np['channel_url'] }}" class="text" id="artist">{{ np['channel'] }}</a>
         </div>
-        <canvas width="720" height="64" id="visualizer"></canvas>
+        <canvas onclick="toggleSettings()" width="720" height="64" id="visualizer"></canvas>
         <div id="duration">
             00:00
         </div>
     </div>
 </div>
+<div class="hidden" id="visualizer-setting">
+    <div class="setting-box">
+        <label for="visualizer-fps">FPS</label>
+        <input onchange="visualizer.changeFPS(this.value)" type="text" id="visualizer-fps" placeholder="48">
+    </div>
+    <div class="setting-box">
+        <label for="visualizer-thickness">Thickness</label>
+        <input onchange="visualizer.changeThickness(this.value)" type="text" id="visualizer-thickness" placeholder="2">
+    </div>
+    <div class="setting-box">
+        <label for="visualizer-color">Color</label>
+        <input onchange="visualizer.changeColor(this.value)" type="text" id="visualizer-color" placeholder="black">
+    </div>
+    <div class="setting-box">
+        <label for="visualizer-sensitivity">Sensitivity</label>
+        <input onchange="visualizer.changeSensitivity(this.value)" type="text" id="visualizer-sensitivity"
+            placeholder="0.6">
+    </div>
+    <div class="setting-box">
+        <label for="visualizer-type">Type</label>
+        <select onchange="visualizer.changeType(this.value)" id="visualizer-type">
+            <option value="bars">Bars</option>
+            <option value="oscilloscope">Oscilloscope</option>
+        </select>
+    </div>
+    <div class="setting-box">
+        <label for="visualizer-multiplier">Multiplier</label>
+        <input onchange="visualizer.changeMultiply(this.value)" type="text" id="visualizer-multiplier" placeholder="1">
+    </div>
+
+</div>
 <div class="queue">
     <div class="queue-header">
         <div class="queue-main-title">
             Queue
-            <button class="no-select" id="add-btn">+</button>
-            <input id="add-queue-box" class="no-select" type="text">
+            <button onclick="AddQueueBox()" class="no-select" id="add-btn">+</button>
+            <input id="add-queue-box" type="text">
         </div>
         <div style="display: flex; justify-content: space-between; flex-direction: column;">
             <button class="toggle-visual" onclick="visualizer.toggle()">Toggle visualizer</button>

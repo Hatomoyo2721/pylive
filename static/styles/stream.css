@@ -84,11 +84,20 @@
   transition: all 0.2s ease-in-out;
 }
 
+.add-btn_Animate {
+  transform: rotate(45deg);
+}
+
 #add-queue-box {
   height: 0;
   visibility: hidden;
   border-radius: 10px;
   transition: height 0.2s ease-in-out;
+}
+
+.add-queue-box_Animate {
+  height: 25px !important;
+  visibility: visible !important;
 }
 
 .skip-btn,
@@ -124,4 +133,29 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+#visualizer-setting {
+  display: flex;
+  flex-direction: row;
+  padding: 32px 10px;
+  gap: 10px;
+  justify-content: space-evenly;
+}
+
+.setting-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-box label {
+  color: #fff;
+}
+
+.setting-box select,
+.setting-box input {
+  border-radius: 10px;
+  height: 25px;
+  text-indent: 5px;
 }

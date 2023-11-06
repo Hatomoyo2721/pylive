@@ -167,6 +167,7 @@ export default class Oscilloscope {
   }
 
   changeType(type) {
+    type = type.toLowerCase()
     if (["bars", "oscilloscope"].indexOf(type) === -1) {
       return;
     }

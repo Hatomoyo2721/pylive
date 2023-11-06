@@ -132,27 +132,28 @@ function addQueue(url) {
   xhttp.send();
 }
 
-function watchAddQueueBox() {
-  var addBtn = document.getElementById("add-btn")
+function AddQueueBox() {
+  var div = document.getElementById("add-btn");
   var input = document.getElementById("add-queue-box");
-  if (addBtn.style.transform != "") {
-    addBtn.style.transform = "";
-    input.style.height = "";
-    input.style.visibility = "";
+  if (div.classList.contains("add-btn_Animate")) {
+    div.classList.remove("add-btn_Animate");
+    input.classList.remove("add-queue-box_Animate");
     if (input.value != "") {
       addQueue(input.value);
       input.value = "";
     }
     return;
   }
-  addBtn.style.transform = "rotate(45deg)";
-  input.style.height = "25px";
-  input.style.visibility = "visible";
+  div.classList.add("add-btn_Animate");
+  input.classList.add("add-queue-box_Animate");
 }
 
-document.getElementById("add-btn").addEventListener("click", watchAddQueueBox);
+function toggleSettings() {
+  document.getElementById("visualizer-setting").classList.toggle("hidden");
+}
+
 document.getElementById("add-queue-box").addEventListener("keyup", ({key}) => {
   if (key === "Enter") {
-    watchAddQueueBox();
+    AddQueueBox();
   }
 });

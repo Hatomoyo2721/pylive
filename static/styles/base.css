@@ -3,6 +3,16 @@
     --div-color: #D9D9D9;
 }
 
+body,
+html {
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 body {
     min-width: 1280px;
     padding: 52px 128px 344px 128px;
