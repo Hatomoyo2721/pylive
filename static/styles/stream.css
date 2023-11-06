@@ -1,10 +1,3 @@
-button {
-  padding: 0;
-  border: none;
-  background: none;
-  width: fit-content;
-}
-
 .player-control {
   display: flex;
   min-width: 1024px;
@@ -27,6 +20,10 @@ button {
   background: var(--div-color);
   justify-content: center;
   align-items: center;
+}
+
+.click-btn {
+  cursor: pointer;
 }
 
 .click-btn img {

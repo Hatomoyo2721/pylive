@@ -14,3 +14,11 @@ body {
     font-weight: 400;
     line-height: normal;
 }
+
+button {
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  background: none;
+  width: fit-content;
+}
