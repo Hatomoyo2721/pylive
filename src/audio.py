@@ -178,9 +178,12 @@ class QueueAudioHandler:
 
         data_json = json.loads(data.read())
 
-        related = data_json["contents"]["twoColumnWatchNextResults"][
-            "secondaryResults"
-        ]["secondaryResults"]["results"]
+        try:
+            related = data_json["contents"]["twoColumnWatchNextResults"][
+                "secondaryResults"
+            ]["secondaryResults"]["results"]
+        except Exception:
+            return []
 
         for item in related:
             res = item.get("compactRadioRenderer", False)
