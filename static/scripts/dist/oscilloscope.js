@@ -15,13 +15,15 @@ export default class Oscilloscope {
 
     this.analyser.fftSize = options.fftSize || 1024;
     this.analyser.smoothingTimeConstant = options.sensitivity || 0.6;
-    this.maxFPS = options.maxFPS || 48;
-    this.type = options.type || "bars";
-    this.thickness = options.stroke || 1;
-    this.color = options.color || "black";
-    this.multiplier = options.multiplier || 1;
     this.analyser.minDecibels = options.minDecibels || -100;
     this.analyser.maxDecibels = options.minDecibels || -30;
+    this.color = options.color || "black";
+    this.maxFPS = options.maxFPS || 48;
+    this.multiplier = options.multiplier || 1;
+    this.type = options.type || "bars";
+    this.thickness = options.stroke || 1;
+    this.XOffset = options.XOffset || 0;
+    this.YOffset = options.YOffset || 0;
 
     this.ctxCanvas = ctxCanvas;
     this.ctxAudio = ctxAudio;
@@ -124,7 +126,7 @@ export default class Oscilloscope {
         (i <= 6 ? 8 : i <= 14 ? 12 : 16) *
         this.multiplier;
 
-      ctx.fillRect(posX, height - barHeight + 24, barWidth, barHeight);
+      ctx.fillRect(posX, height - barHeight + this.YOffset, barWidth, barHeight);
       ctx.fill();
       posX += barWidth + 1;
     }
