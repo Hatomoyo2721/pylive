@@ -73,7 +73,22 @@
 }
 
 .queue-main-title {
+  display: flex;
+  gap: 12px;
   color: #fff;
+}
+
+#add-btn {
+  color: white;
+  font-size: larger;
+  transition: all 0.2s ease-in-out;
+}
+
+#add-queue-box {
+  height: 0;
+  visibility: hidden;
+  border-radius: 10px;
+  transition: height 0.2s ease-in-out;
 }
 
 .skip-btn,

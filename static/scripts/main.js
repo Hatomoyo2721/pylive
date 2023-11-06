@@ -56,7 +56,7 @@ function increaseDuration() {
   duration_div.innerText = secondsToTime(duration);
 }
 
-function changeSong(e) {
+function changeSongEvent(e) {
   if (queue_list.children.length > 1) {
     queue_list.removeChild(queue_list.children[1]);
     if (queue_list.children.length == 1) {
@@ -71,7 +71,7 @@ function changeSong(e) {
   artist_div.href = data.channel_url;
 }
 
-function addQueue(e) {
+function addQueueEvent(e) {
   data = JSON.parse(e.data);
   queue_empty.classList.add("hidden");
 
@@ -90,8 +90,8 @@ function watchEvent() {
   if (!source) {
     var source = new EventSource("/watch_event");
   }
-  source.addEventListener("nowplaying", changeSong);
-  source.addEventListener("queueadd", addQueue);
+  source.addEventListener("nowplaying", changeSongEvent);
+  source.addEventListener("queueadd", addQueueEvent);
 
   return function () {
     is_paused = true;
@@ -120,6 +120,31 @@ pause_btn.addEventListener("click", function () {
   stopFn();
 });
 
-var source = new EventSource("/watch_event");
-source.addEventListener("nowplaying", changeSong);
-source.addEventListener("queueadd", addQueue);
+function addQueue(url) {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onload = function () {
+    data = JSON.parse(xhttp.responseText);
+    if (data.msg == "success") {
+      console.log("Add queue success");
+    }
+  }
+  xhttp.open("GET", `/add?url=${url}`, true);
+  xhttp.send();
+}
+
+document.getElementById("add-btn").addEventListener("click", function () {
+  var input = document.getElementById("add-queue-box");
+  if (this.style.transform != "") {
+    this.style.transform = "";
+    input.style.height = "";
+    input.style.visibility = "";
+    if (input.value != "") {
+      addQueue(input.value);
+      input.value = "";
+    }
+    return;
+  }
+  this.style.transform = "rotate(45deg)";
+  input.style.height = "25px";
+  input.style.visibility = "visible";
+});

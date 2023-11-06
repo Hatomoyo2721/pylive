@@ -28,7 +28,11 @@
 </div>
 <div class="queue">
     <div class="queue-header">
-        <div class="queue-main-title">Queue</div>
+        <div class="queue-main-title">
+            Queue
+            <button class="no-select" id="add-btn">+</button>
+            <input id="add-queue-box" class="no-select" type="text">
+        </div>
         <div style="display: flex; justify-content: space-between; flex-direction: column;">
             <button class="toggle-visual" onclick="visualizer.toggle()">Toggle visualizer</button>
             <button class="skip-btn" onclick="voteSkip()">Vote skip</button>
