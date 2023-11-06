@@ -185,15 +185,15 @@ class QueueAudioHandler:
         except Exception:
             return []
 
-        for item in related:
-            res = item.get("compactRadioRenderer", False)
+        # for item in related:
+        #     res = item.get("compactRadioRenderer", False)
 
-            if not res:
-                continue
+        #     if not res:
+        #         continue
 
-            playlist = extractor.fetch_playlist(res["shareUrl"])
-            # remove the first entry; it usually is the same as the now-play one.
-            return playlist[1:]
+        #     playlist = extractor.fetch_playlist(res["shareUrl"])
+        #     # remove the first entry; it usually is the same as the now-play one.
+        #     return playlist[1:]
 
         playlist = []
         for item in related:
