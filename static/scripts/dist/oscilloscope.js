@@ -14,9 +14,12 @@ export default class Oscilloscope {
     source.connect(ctxAudio.destination);
 
     this.analyser.fftSize = options.fftSize || 1024;
-    this.maxFPS = options.maxFPS || 24;
+    this.analyser.smoothingTimeConstant = options.sensitivity || 0.6;
+    this.maxFPS = options.maxFPS || 48;
     this.type = options.type || "bars";
     this.thickness = options.stroke || 1;
+    this.color = options.color || "green";
+    this.multiplier = options.multiplier || 1;
 
     this.ctxCanvas = ctxCanvas;
     this.ctxAudio = ctxAudio;
@@ -24,7 +27,7 @@ export default class Oscilloscope {
 
     // mapping function
     this.mapDrawfn = {
-      bars: this.drawBars,
+      bars: this.testdrawBars,
       oscilloscope: this.drawOsc,
     };
   }
@@ -33,7 +36,6 @@ export default class Oscilloscope {
     if (this.isEnable) {
       throw new Error("Oscilloscope animation is already running");
     }
-
     this.isEnable = true;
 
     function sleep(ms) {
@@ -87,15 +89,40 @@ export default class Oscilloscope {
     var barHeight;
     let posX = 0;
     for (let i = 0; i < bufferLength; i++) {
-      barHeight = (dataArray[i] + (i <= 3 ? 30 : i <= 14 ? 45 : 50)) * 4;
-      ctx.fillStyle = "green";
+      barHeight =
+        (dataArray[i] + (i <= 3 ? 30 : i <= 14 ? 45 : 50)) *
+        6 *
+        this.multiplier;
+      ctx.fillStyle = this.color;
 
-      // ctx.fillRect(posX, height - barHeight / 2, barWidth, barHeight / 2);
-      ctx.beginPath();
-      ctx.moveTo(posX, height);
-      ctx.lineTo(posX, height - barHeight);
-      ctx.lineTo(posX + barWidth, height - barHeight);
-      ctx.lineTo(posX + barWidth, height);
+      ctx.fillRect(posX, height - barHeight, barWidth, barHeight);
+      ctx.fill();
+      posX += barWidth + 1;
+    }
+  }
+
+  testdrawBars(
+    ctx,
+    x0 = 0,
+    y0 = 0,
+    width = ctx.canvas.width - x0,
+    height = ctx.canvas.height - y0
+  ) {
+    var bufferLength = this.analyser.frequencyBinCount;
+    var dataArray = new Uint8Array(this.analyser.fftSize);
+    this.analyser.getByteFrequencyData(dataArray);
+
+    var barWidth = (width / bufferLength) * this.thickness;
+    let posX = 0;
+    var barHeight;
+    for (let i = 0; i < bufferLength; i++) {
+      ctx.fillStyle = this.color;
+      barHeight =
+        (dataArray[i] / height) *
+        (i <= 6 ? 8 : i <= 14 ? 12 : 16) *
+        this.multiplier;
+
+      ctx.fillRect(posX, height - barHeight + 24, barWidth, barHeight);
       ctx.fill();
       posX += barWidth + 1;
     }
@@ -115,9 +142,11 @@ export default class Oscilloscope {
 
     ctx.beginPath();
     ctx.lineWidth = this.thickness;
+    ctx.strokeStyle = this.color;
     // drawing loop (skipping every second record)
-    for (let i = 0; i < bufferLength; i += 8) {
-      const percent = dataArray[i] / 256;
+    for (let i = 0; i < bufferLength; i += 4) {
+      // i += n, n higher == less detail
+      const percent = dataArray[i] / (256 / this.multiplier);
       const x = x0 + i * step;
       const y = y0 + height * percent;
       ctx.lineTo(x, y);
@@ -141,7 +170,14 @@ export default class Oscilloscope {
     if (["bars", "oscilloscope"].indexOf(type) === -1) {
       return;
     }
+    var prevType = this.type;
     this.type = type;
+    this.stop();
+    this.animate();
+    if (prevType == "oscilloscope") {
+      this.ctxCanvas.beginPath();
+      this.ctxCanvas.stroke();
+    }
   }
 
   changeFPS(fps) {
@@ -157,10 +193,18 @@ export default class Oscilloscope {
     this.thickness = v;
   }
 
+  changeColor(v) {
+    this.color = v;
+  }
+
   changeSensitivity(v) {
     if (v >= 0 && v <= 1) {
       this.analyser.smoothingTimeConstant = v;
     }
+  }
+
+  changeMultiply(v) {
+    this.multiplier = v;
   }
 
   toggle() {
