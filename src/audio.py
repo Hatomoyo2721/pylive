@@ -186,25 +186,25 @@ class QueueAudioHandler:
         except Exception:
             return []
 
-        # for item in related:
-        #     res = item.get("compactRadioRenderer", False)
+        for item in related:
+            res = item.get("compactRadioRenderer", False)
 
-        #     if not res:
-        #         continue
-
-        #     playlist = extractor.fetch_playlist(res["shareUrl"])
-        #     # remove the first entry; it usually is the same as the now-play one.
-        #     return playlist[1:]
-
-        playlist = []
-        for count, item in enumerate(related):
-            if count > 1:  # take 2 items only
-                break
-
-            res = item.get("compactVideoRenderer", False)
             if not res:
                 continue
-            playlist.append(f"https://www.youtube.com/watch?v={res['videoId']}")
+
+            playlist = extractor.fetch_playlist(res["shareUrl"])
+            # remove the first entry; it usually is the same as the now-play one.
+            return playlist[1:3]
+
+        # playlist = []
+        # for count, item in enumerate(related):
+        #     if count > 1:  # take 2 items only
+        #         break
+
+        #     res = item.get("compactVideoRenderer", False)
+        #     if not res:
+        #         continue
+        #     playlist.append(f"https://www.youtube.com/watch?v={res['videoId']}")
 
         return playlist
 
