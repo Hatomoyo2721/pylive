@@ -198,7 +198,7 @@ class QueueAudioHandler:
 
         playlist = []
         for count, item in enumerate(related):
-            if count > 4:
+            if count > 1:  # take 2 items only
                 break
 
             res = item.get("compactVideoRenderer", False)
