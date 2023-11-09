@@ -4,7 +4,7 @@ window.ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
 var audioElement = document.getElementById("main-player");
 var source = window.ctxAudio.createMediaElementSource(audioElement);
 var options = {
-  stroke: 2, // size of the wave
+  stroke: 1, // size of the wave
   type: "bars",
   fftSize: 2048, // size ranging from 32 to any number that that is a power of 2
 };
