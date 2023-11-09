@@ -1,7 +1,14 @@
-from typing import Generator, Optional
+from typing import Generator
 
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
+
+from .errors import (
+    VideoIsLiveException,
+    VideoIsUnavailableException,
+    VideoIsOverLengthException,
+    PlaylistNotFoundException,
+)
 
 globopts = {
     "nocheckcertificate": True,
@@ -22,10 +29,10 @@ globopts = {
 
 def check_length(item: dict) -> bool:
     """Check if length > 15min"""
-    return item.get("duration", 0.0) > 900.0
+    return item.get("duration", 901) > 900.0
 
 
-def create(url, process=True) -> Optional[dict]:
+def create(url, process=True) -> dict[str, str | bool | float]:
     """
     Retrieves information about a video from a given URL.
 
@@ -40,7 +47,7 @@ def create(url, process=True) -> Optional[dict]:
         try:
             data = ytdl.extract_info(url=url, download=False, process=process)
             if not data:
-                return
+                raise VideoIsUnavailableException
 
             if data.get("entries", False):
                 if isinstance(data["entries"], Generator):
@@ -48,8 +55,11 @@ def create(url, process=True) -> Optional[dict]:
                 else:
                     data = data["entries"][0]
 
+            if data.get("is_live", False):
+                raise VideoIsLiveException
+
             if check_length(data):
-                return
+                raise VideoIsOverLengthException
 
             need_reencode = False
             if data.get("asr", 0) != 48000:
@@ -84,8 +94,7 @@ def create(url, process=True) -> Optional[dict]:
 
             return ret
         except DownloadError:
-            print("403 link forbidden but i dont fucking care")
-            return
+            raise VideoIsUnavailableException
 
 
 def fetch_playlist(url_playlist) -> list:
@@ -97,7 +106,7 @@ def fetch_playlist(url_playlist) -> list:
         data = ytdl.extract_info(url=url_playlist, download=False, process=False)
 
         if not data:
-            return playlist
+            raise PlaylistNotFoundException
 
         for count, item in enumerate(data.get("entries", [])):
             try:

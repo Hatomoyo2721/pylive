@@ -3,9 +3,9 @@ import json
 import subprocess
 from array import array
 from queue import Queue
+from random import randint
 from threading import Event, Lock, Thread
 from time import sleep
-from random import randint
 from typing import Any, Generator, Union
 
 from src.utils import extractor
@@ -22,6 +22,7 @@ def get_or_set_savefile(data=None):
             if not data:
                 return f.read()
             f.write(data)
+        return data
     except FileNotFoundError:
         return "https://music.youtube.com/watch?v=cUuQ5L6Obu4"
 
@@ -82,13 +83,15 @@ class QueueAudioHandler:
 
     def __init__(self):
         # self.queue = ["https://music.youtube.com/watch?v=cUuQ5L6Obu4"]
-        self.queue: list = [get_or_set_savefile()]
-        self.auto_queue = []
+        self.queue: list[Union[str, dict[str, str | bool | float]]] = [
+            get_or_set_savefile()
+        ]
+        self.auto_queue: list[Union[str, dict[str, str | bool | float]]] = []
 
         self._skip = False
         self.lock = Lock()
         self.event = Event()
-        self.now_playing: Union[dict, str] = {}
+        self.now_playing: dict = {}
 
         self.header = b""
         self.buffer = b""
@@ -162,7 +165,7 @@ class QueueAudioHandler:
                         "platform": "DESKTOP",
                     },
                 },
-                "videoId": self.now_playing.get("id", "NA"),  # type: ignore
+                "videoId": self.now_playing.get("id", "NA"),
                 "racyCheckOk": True,
                 "contentCheckOk": True,
             },
@@ -174,6 +177,7 @@ class QueueAudioHandler:
         )
 
         if not data:
+            print("data not found")
             return []
 
         data_json = json.loads(data.read())
@@ -183,8 +187,12 @@ class QueueAudioHandler:
             related = data_json["contents"]["twoColumnWatchNextResults"][
                 "secondaryResults"
             ]["secondaryResults"]["results"]
-        except Exception:
-            return []
+        except Exception as err:
+            print("empty response")
+            print(err.__class__.__name__, str(err))
+            # import pprint
+            # pprint.pprint(data_json, indent=2)
+            return ["https://music.youtube.com/watch?v=cUuQ5L6Obu4"]
 
         for item in related:
             res = item.get("compactRadioRenderer", False)
@@ -194,17 +202,17 @@ class QueueAudioHandler:
 
             playlist = extractor.fetch_playlist(res["shareUrl"])
             # remove the first entry; it usually is the same as the now-play one.
-            return playlist[1:3]
+            return playlist[1:]
 
-        # playlist = []
-        # for count, item in enumerate(related):
-        #     if count > 1:  # take 2 items only
-        #         break
+        playlist = []
+        for count, item in enumerate(related):
+            if count > 1:  # take 2 items only
+                break
 
-        #     res = item.get("compactVideoRenderer", False)
-        #     if not res:
-        #         continue
-        #     playlist.append(f"https://www.youtube.com/watch?v={res['videoId']}")
+            res = item.get("compactVideoRenderer", False)
+            if not res:
+                continue
+            playlist.append(f"https://www.youtube.com/watch?v={res['videoId']}")
 
         return playlist
 
@@ -212,23 +220,21 @@ class QueueAudioHandler:
         if not self.auto_queue and not self.queue:
             self.auto_queue = self.experiment_get_related_tracks()
 
-    def __add(self, url):
+    def add(self, url):
         ret = extractor.create(url, process=False)
-        if not ret:
-            return
-
         self.queue.append(ret)
         self.event_queue.add_event(SendEvent.QUEUE_ADD, ret)
 
-    def add(self, url):
-        run_in_thread(self.__add, url)
+    # def add(self, url):
+    #     # run_in_thread(self.__add, url)
 
     def pop(self):
         if self.queue:
             self.auto_queue.clear()
             return self.queue.pop(0)
 
-        self.populate_autoqueue()
+        if not self.auto_queue:
+            self.populate_autoqueue()
         return self.auto_queue.pop(0)
 
     @staticmethod
@@ -344,16 +350,20 @@ class QueueAudioHandler:
 
         while True:
             self.next_signal.clear()
-            self.now_playing = self.pop()  # type: ignore
+            next_track = self.pop()  # type: ignore
 
-            if isinstance(self.now_playing, str):
-                self.now_playing = extractor.create(self.now_playing)  # type: ignore
-            elif not self.now_playing.get("process", False):  # type: ignore
-                self.now_playing = extractor.create(self.now_playing["webpage_url"])  # type: ignore  # noqa: E501
+            try:
+                if isinstance(next_track, str):
+                    next_track = extractor.create(next_track)  # type: ignore
+                elif not next_track.get("process", False):  # type: ignore
+                    next_track = extractor.create(next_track["webpage_url"])  # type: ignore  # noqa: E501
 
-            if not self.now_playing:
+                if not next_track:
+                    continue
+            except Exception:
                 continue
 
+            self.now_playing = next_track
             queue.put(self.now_playing)
             print(f"Playing {self.now_playing['title']}")
             print("wait for signal")
